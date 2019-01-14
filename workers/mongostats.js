@@ -62,7 +62,7 @@ MongoClient.connect(url, { useNewUrlParser: true }).then((aclient) => {
 }).then(result => {
     youngest = new Date(result[0].processing_date);
     let options = {
-        limit: 20,
+        limit: 50,
         sort: [['stars', 'desc'], ['npmsio.evaluation.popularity.downloadsCount', 'desc']]
     }
     return collection.find({$and: [

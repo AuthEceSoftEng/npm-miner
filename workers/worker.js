@@ -220,6 +220,32 @@ function work(job, channel, msg, db) {
                     package.eslint.message = 'completed';
                     package.eslint.errorCount = report.eslint.errorCount;
                     package.eslint.warningCount = report.eslint.warningCount;
+                    const typesAndCounts = _.chain(report.eslint.results)
+                    .map((result) => {
+                        const errorTypes = _.values(_.reduce(result.messages, (result, obj) => {
+                        const type = obj.ruleId;
+                        result[type] = {
+                          type,
+                          count: 1 + (result[type] ? result[type].count : 0),
+                        };
+                        return result;
+                      }, {}));
+                      return errorTypes;
+                    })
+                    .flattenDeep()
+                    .groupBy('type')
+                    .map((objs, key) => ({
+                    'type': key,
+                    'count': _.sumBy(objs, 'count') }))
+                    .keyBy('type')
+                    .mapValues('count')
+                    .value();
+                    if(_.isEmpty(typesAndCounts)) {
+                        package.eslint.typesAndCounts = null;
+                    } else {
+                        package.eslint.typesAndCounts = typesAndCounts;
+                    }
+                    logger.info(typesAndCounts);
                     logger.info(report.eslint.errorCount);
                     logger.info(report.eslint.warningCount);
                     return resolve('OK');

@@ -75,10 +75,12 @@ MongoClient.connect(url, { useNewUrlParser: true }).then((aclient) => {
     });
     console.log(_.orderBy(edges, ['pmi'], ['desc']))
     const edgeThreshold = 1
-    const pairs = _.chain(edges).filter(edge => edge.pmi > 7).map(o =>  [o.key.split(';')[0], o.key.split(';')[1], o.pmi]).value();
+    // const pairs = _.chain(edges).filter(edge => edge.pmi > 8).map(o =>  [o.key.split(';')[0], o.key.split(';')[1], o.pmi]).value();
+    const pairs = _.chain(edges).filter(edge => edge.pmi > 7).map(o =>  [o.key.split(';')[0], o.key.split(';')[1]]).value();
     const csvFromArrayOfObjects = convertArrayToCSV(pairs, {
         separator: ';'
     });
+    console.log(csvFromArrayOfObjects.length);
     return converter.json2csvPromisified(pairs, {
         prependHeader: false,
         delimiter: {
