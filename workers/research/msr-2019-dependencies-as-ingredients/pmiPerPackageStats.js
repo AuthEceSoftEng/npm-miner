@@ -1,63 +1,86 @@
+/*
+    Calculates min, max and avg PMI for each pair
+*/
 const MongoClient = require('mongodb').MongoClient;
-// Connection URL
-const url = process.env.MONGODB_URL;
-const dbName = 'npmminer';
-let db;
-let client;
 const _ = require('lodash');
 const { convertArrayToCSV } = require('convert-array-to-csv');
 const fs = require('fs');
 let converter = require('json-2-csv');
-let Combinatorics = require('js-combinatorics');
+
+// Connection URL
+const url = process.env.MONGODB_URL;
+const dbName = 'npmminer';
+const stars = 100;
+const downloads = 5000;
+
+let db;
+let client;
 let dbpairs;
 let packages;
+
 
 MongoClient.connect(url, { useNewUrlParser: true }).then((aclient) => {
     client = aclient;
     db = client.db(dbName);
     console.log("Connected successfully to server");
     const collection = db.collection('packages');
+    // Retrieve all packages (name and dependencies) with more than X stars and more than Y downloads, while has dependencies as well
     return collection.find(
-        { stars: { $gt: 10 }, "npmsio.evaluation.popularity.downloadsCount": { $gt: 1000 } })
+        { 
+            stars: { $gt: stars }, 
+            "npmsio.evaluation.popularity.downloadsCount": { $gt: downloads }, 
+            "latest_package_json.devDependencies": { $exists: true }, })
         .project({
-            name: 1, 
+            name: 1,
             _id: 0,
-            "latest_package_json.dependencies": 1,
+            "latest_package_json.devDependencies": 1,
             stars: 1,
             "npmsio.evaluation.popularity.downloadsCount": 1
         }).toArray();
 }).then(results => {
     packages = results;
-    const numberOfPackages = results.length;
-    console.log(numberOfPackages)
-    const deps = _.chain(results)
-    .map(result => _.keys(result.latest_package_json.dependencies))
-    .value();
-    // console.log(deps);
-    const temp = _.chain(results)
-    .map(result => _.keys(result.latest_package_json.dependencies))
-    .flatMap()
-    .countBy()
-    .value();
-    // console.log(_.entries(temp));
-    const toArrayWithKey = _.chain(_.entries(temp))
-    .map(([k,v]) => ({name: k, value: v}))
-    .orderBy(['value'], ['desc'])
-    // .filter(function(o) {
-    //     return o['value'] > 5;
-    // })
-    // .slice(0,1000)
-    .value();
-    // console.log(toArrayWithKey);
-    const top = convertArrayToCSV(toArrayWithKey);
-    fs.writeFileSync('deps.csv', top);
-    const all = _.chain(_.entries(temp))
-    .map(([k,v]) => ({name: k, value: v}))
-    .orderBy(['value'], ['desc'])
-    // .slice(0,1000)
-    .map('name')
-    .value();
-    db = {};
+    const numberOfPackages = packages.length;
+    console.log(`Number of packages retreieved: ${numberOfPackages}`);
+
+    // Get devDependencies per package
+    const deps = _.chain(packages)
+        .map(package => _.keys(package.latest_package_json.devDependencies))
+        .value();
+
+    // Count the existence of a dependency in a package
+    const counting = _.chain(packages)
+        .map(package => _.keys(package.latest_package_json.devDependencies))
+        .flatMap()
+        .countBy()
+        .value();
+    // console.log(_.entries(counting));
+
+    // Transform the counting to an array with a key
+    const countingToArrayWithKey = _.chain(_.entries(counting))
+        .map(([k,v]) => ({name: k, value: v}))
+        .orderBy(['value'], ['desc'])
+        // .filter(function(o) {
+        //     return o['value'] > 5;
+        // })
+        // .slice(0,1000)
+        .value();
+    // console.log(countingToArrayWithKey);
+
+    // Output the top dependencies according to count
+    const top = convertArrayToCSV(countingToArrayWithKey);
+    fs.writeFileSync('output-topDeps.csv', top);
+
+    // Order the dependencies and get the names of them
+    const all = _.chain(_.entries(counting))
+        .map(([k,v]) => ({name: k, value: v}))
+        .orderBy(['value'], ['desc'])
+        // .slice(0,1000)
+        .map('name')
+        .value();
+    // console.log(all);
+
+    // Calculate the PMI for each pair.
+    db = {}; // A database of PMI information for pairs of dependencies
     for(let i =0, size=deps.length; i < size; i++) {
         for(let j =0, size2=deps[i].length; j < size2-1; j++) {
             for(let k =j+1, size3=deps[i].length; k < size3; k++) {
@@ -66,35 +89,32 @@ MongoClient.connect(url, { useNewUrlParser: true }).then((aclient) => {
                     db[key] = (db[key] || 0.0) + 1.0;
                 }
             }
-        }   
+        }
     }
-    // console.log(db);
     const edges = Object.entries(db).map(([key, value]) => {
         const nodes = key.split(';');
         const nodea = nodes[0]
         const nodeb = nodes[1]
         const pab = value / numberOfPackages;
-        const pa = _.find(toArrayWithKey, {name: nodea }).value / numberOfPackages;
-        const pb = _.find(toArrayWithKey, {name: nodeb }).value / numberOfPackages;
+        const pa = _.find(countingToArrayWithKey, {name: nodea }).value / numberOfPackages;
+        const pb = _.find(countingToArrayWithKey, {name: nodeb }).value / numberOfPackages;
         const pmi = Math.log2(pab / (pa * pb));
         return {key, pmi}
     });
-    console.log(_.orderBy(edges, ['pmi'], ['desc']))
-    const edgeThreshold = 1
-    // const pairs = _.chain(edges).filter(edge => edge.pmi > 8).map(o =>  [o.key.split(';')[0], o.key.split(';')[1], o.pmi]).value();
-    const pairs = _.chain(edges).filter(edge => edge.pmi > 0).map(o =>  [o.key.split(';')[0], o.key.split(';')[1], o.pmi]).value();
-    const csvFromArrayOfObjects = convertArrayToCSV(pairs, {
-        separator: ';'
-    });
+    // console.log(_.orderBy(edges, ['pmi'], ['desc']))
+
+    // Prepare them for output in a csv file
+    const pairs = _.map(edges, o =>  [o.key.split(';')[0], o.key.split(';')[1], o.pmi]);
     
+    // Transform them
     dbpairs = _.chain(pairs).map(pair => {
         let pairname = (pair[0] + ';' + pair[1]);
         let pairvalue = parseFloat(pair[2]);
         return {pairname, pairvalue};
     }).keyBy('pairname').mapValues('pairvalue').value();
-    console.log(dbpairs);
-    console.log(dbpairs['async;cli-progress']);
-    // console.log(csvFromArrayOfObjects);
+    // console.log(dbpairs);
+    // console.log(dbpairs['async;cli-progress']);
+
     return converter.json2csvPromisified(pairs, {
         prependHeader: false,
         delimiter: {
@@ -103,10 +123,13 @@ MongoClient.connect(url, { useNewUrlParser: true }).then((aclient) => {
         }
     })
 }).then(file => {
-    fs.writeFileSync('dependencies-pmi.csv', file);
+    // Write for each pair of dependencies its pmi
+    fs.writeFileSync('output-pmiPerPair.csv', file);
+
+    // Calculate stats for recipes/pairs...
     let stats = [];
     _.map(packages, package => {
-        const dependencies = _.keys(package.latest_package_json.dependencies);
+        const dependencies = _.keys(package.latest_package_json.devDependencies);
         let combinations = [];
         // Since you only want pairs, there's no reason
         // to iterate over the last element directly
@@ -116,7 +139,6 @@ MongoClient.connect(url, { useNewUrlParser: true }).then((aclient) => {
                 combinations.push(`${dependencies[i]};${dependencies[j]}`);
             }
         }
-        console.log(combinations);
         let min = 100;
         let max = 0;
         let sum = 0;
@@ -132,15 +154,11 @@ MongoClient.connect(url, { useNewUrlParser: true }).then((aclient) => {
             sum += pmic;
         }
         let avg = sum / combinations.length;
-        console.log({min, max, avg, stars: package.stars, downloads: package.npmsio.evaluation.popularity.downloadsCount })
         if(combinations.length > 0) {
             const statistic = [min, max, avg, package.stars, package.npmsio.evaluation.popularity.downloadsCount];
             stats.push(statistic)
         }
     })
-    const csvFromArrayOfObjects = convertArrayToCSV(stats, {
-        separator: ';'
-    });
     return converter.json2csvPromisified(stats, {
         prependHeader: false,
         delimiter: {
@@ -149,7 +167,7 @@ MongoClient.connect(url, { useNewUrlParser: true }).then((aclient) => {
         }
     })
 }).then(file => {
-    fs.writeFileSync('stats.csv', file);
+    fs.writeFileSync('output-pmiStatsPerPackage.csv', file);
 }).finally(() => {
     client.close();
 });

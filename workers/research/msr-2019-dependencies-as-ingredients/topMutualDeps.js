@@ -1,3 +1,7 @@
+/*
+ Output an edge list file of dependencies with high PMI
+*/
+
 const MongoClient = require('mongodb').MongoClient;
 // Connection URL
 const url = process.env.MONGODB_URL;
@@ -9,32 +13,66 @@ const { convertArrayToCSV } = require('convert-array-to-csv');
 const fs = require('fs');
 let converter = require('json-2-csv');
 
+let type = "";
+
 MongoClient.connect(url, { useNewUrlParser: true }).then((aclient) => {
     client = aclient;
     db = client.db(dbName);
     console.log("Connected successfully to server");
     const collection = db.collection('packages');
-    return collection.find(
-        { stars: { $gt: 100 }, "npmsio.evaluation.popularity.downloadsCount": { $gt: 5000 } })
-        .project({
+    let project = {
+        name: 1, 
+        _id: 0,
+        "latest_package_json.dependencies": 1,
+    }
+    if(process.argv[2] === 'dev') {
+        project = {
             name: 1, 
             _id: 0,
-            "latest_package_json.dependencies": 1
-        }).toArray();
-}).then(results => {
-    const numberOfPackages = results.length;
-    console.log(numberOfPackages)
-    const deps = _.chain(results)
-    .map(result => _.keys(result.latest_package_json.dependencies))
-    .value();
-    // console.log(deps);
-    const temp = _.chain(results)
-    .map(result => _.keys(result.latest_package_json.dependencies))
-    .flatMap()
-    .countBy()
-    .value();
-    // console.log(_.entries(temp));
-    const toArrayWithKey = _.chain(_.entries(temp))
+            "latest_package_json.devDependencies": 1,
+        }
+        type = "dev";
+    }
+    return collection.find(
+        { stars: { $gt: 100 }, "npmsio.evaluation.popularity.downloadsCount": { $gt: 5000 } })
+        .project(project).toArray();
+}).then(recipes => {
+    const numberOfPackages = recipes.length;
+    console.log(`Number of packages retrieved: ${numberOfPackages}`)
+
+    // Get the ingredients per recipe
+    let ingredientsPerRecipe;
+    if(type === 'dev') {
+        ingredientsPerRecipe = _.chain(recipes)
+            .map(result => _.keys(result.latest_package_json.devDependencies))
+            .value();
+    } else {
+        ingredientsPerRecipe = _.chain(recipes)
+        .map(result => _.keys(result.latest_package_json.dependencies))
+        .value();
+    }
+    console.log(ingredientsPerRecipe);
+
+    // Count the ingredients appearence
+    let freqCount;
+    if(type === 'dev') {
+        freqCount = _.chain(recipes)
+        .map(result => _.keys(result.latest_package_json.devDependencies))
+        .flatMap()
+        .countBy()
+        .value();
+    } else {
+        freqCount = _.chain(recipes)
+        .map(result => _.keys(result.latest_package_json.dependencies))
+        .flatMap()
+        .countBy()
+        .value();
+    }
+
+    // console.log(_.entries(freqCount));
+
+    // Transform the
+    const toArrayWithKey = _.chain(_.entries(freqCount))
     .map(([k,v]) => ({name: k, value: v}))
     .orderBy(['value'], ['desc'])
     // .filter(function(o) {
@@ -42,27 +80,33 @@ MongoClient.connect(url, { useNewUrlParser: true }).then((aclient) => {
     // })
     .slice(0,1000)
     .value();
-    console.log(toArrayWithKey);
+    console.log({mostFreq: toArrayWithKey[0] , lessFreq: toArrayWithKey[999], length: toArrayWithKey.length });
+
     const top = convertArrayToCSV(toArrayWithKey);
-    fs.writeFileSync('topDeps.csv', top);
-    const top1000 = _.chain(_.entries(temp))
-    .map(([k,v]) => ({name: k, value: v}))
-    .orderBy(['value'], ['desc'])
-    .slice(0,1000)
-    .map('name')
-    .value();
+    fs.writeFileSync(`output-top-${type}Deps.csv`, top);
+
+    // Again ge the top 1000 ingredients
+    const top1000 = _.chain(_.entries(freqCount))
+        .map(([k,v]) => ({name: k, value: v}))
+        .orderBy(['value'], ['desc'])
+        .slice(0,1000)
+        .map('name')
+        .value();
+
+    // Calculate PMI
     db = {};
-    for(let i =0, size=deps.length; i < size; i++) {
-        for(let j =0, size2=deps[i].length; j < size2-1; j++) {
-            for(let k =j+1, size3=deps[i].length; k < size3; k++) {
-                if(top1000.indexOf(deps[i][j]) > 0 && top1000.indexOf(deps[i][k]) > 0) {
-                    let key = deps[i][j] < deps[i][k] ? `${deps[i][j]};${deps[i][k]}` : `${deps[i][k]};${deps[i][j]}`;
+    for(let i =0, size=ingredientsPerRecipe.length; i < size; i++) {
+        for(let j =0, size2=ingredientsPerRecipe[i].length; j < size2-1; j++) {
+            for(let k =j+1, size3=ingredientsPerRecipe[i].length; k < size3; k++) {
+                if(top1000.indexOf(ingredientsPerRecipe[i][j]) > 0 && top1000.indexOf(ingredientsPerRecipe[i][k]) > 0) {
+                    let key = ingredientsPerRecipe[i][j] < ingredientsPerRecipe[i][k] ? `${ingredientsPerRecipe[i][j]};${ingredientsPerRecipe[i][k]}` : `${ingredientsPerRecipe[i][k]};${ingredientsPerRecipe[i][j]}`;
                     db[key] = (db[key] || 0.0) + 1.0;
                 }
             }
         }   
     }
-    // console.log(db);
+
+    
     const edges = Object.entries(db).map(([key, value]) => {
         const nodes = key.split(';');
         const nodea = nodes[0]
@@ -73,14 +117,17 @@ MongoClient.connect(url, { useNewUrlParser: true }).then((aclient) => {
         const pmi = Math.log2(pab / (pa * pb));
         return {key, pmi}
     });
-    console.log(_.orderBy(edges, ['pmi'], ['desc']))
-    const edgeThreshold = 1
-    // const pairs = _.chain(edges).filter(edge => edge.pmi > 8).map(o =>  [o.key.split(';')[0], o.key.split(';')[1], o.pmi]).value();
-    const pairs = _.chain(edges).filter(edge => edge.pmi > 7).map(o =>  [o.key.split(';')[0], o.key.split(';')[1]]).value();
+
+    const ordered = _.orderBy(edges, ['pmi'], ['desc'])
+    console.log({top: ordered[0], bottom: ordered[ordered.length-1]})
+
+    const edgeThreshold = 7
+
+    const pairs = _.chain(edges).filter(edge => edge.pmi > edgeThreshold).map(o =>  [o.key.split(';')[0], o.key.split(';')[1]]).value();
     const csvFromArrayOfObjects = convertArrayToCSV(pairs, {
         separator: ';'
     });
-    console.log(csvFromArrayOfObjects.length);
+    console.log({edges: csvFromArrayOfObjects.length});
     return converter.json2csvPromisified(pairs, {
         prependHeader: false,
         delimiter: {
@@ -89,7 +136,8 @@ MongoClient.connect(url, { useNewUrlParser: true }).then((aclient) => {
         }
     })
 }).then(file => {
-    fs.writeFileSync('mutual-dependencies.csv', file);
+    console.log()
+    fs.writeFileSync(`output-mutual-${type}Dependencies.csv`, file);
 }).finally(() => {
     client.close();
 })

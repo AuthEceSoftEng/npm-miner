@@ -1,6 +1,7 @@
-const cron = require('node-cron');
+/*
+A crawler to just download packages from npm in a sequence and ask GitHub and npms.io about some stats
+*/ 
 const bunyan = require('bunyan');
-const amqp = require('amqplib');
 const Promise = require('bluebird');
 const _ = require('lodash')
 const opts = {
@@ -14,7 +15,6 @@ octokit.authenticate({
     type: 'token',
     token: process.env.GITHUB_TOKEN_2,
   })
-const performance = require('perf_hooks').performance;
 const MongoClient = require('mongodb').MongoClient;
 const request = require('request-promise');
 // Connection URL
@@ -22,9 +22,7 @@ const url = process.env.MONGODB_URL;
 const dbName = 'npmminer';
 
 const limit = 1000;
-const start_page = 4;
-let t0 = 0
-let t1 = 0;
+const start_page = 187;
 let at_page = start_page;
 
 logger.info('Connecting to npm and mongo')
@@ -43,7 +41,6 @@ MongoClient.connect(url, { useNewUrlParser: true }).then((client) => {
         return Promise.each(pages, (page) => {
             logger.info(page);
             at_page = page;
-            t0 = performance.now();
             console.time("page");
             return npm_registry.list({
                 include_docs: true,
@@ -150,11 +147,13 @@ MongoClient.connect(url, { useNewUrlParser: true }).then((client) => {
                     logger.error(err);;
                 })
             }).finally(() => {
-                t1 = performance.now();
                 console.timeEnd("page");
-                logger.info(`Finished page ${page}, time taken: ${(t1-t0)/(1000*60)} seconds`);
+                logger.info(`Finished page ${page}`);
             })
-        });
+        }).catch(err => {
+            logger.info(`Problem with connection?`);
+            logger.error(err);;
+        })
     });
 }).catch(err => {
     logger.error(err);
