@@ -1,0 +1,12 @@
+.navbar {
+    min-height: 4rem;
+}
+
+.navbar-item img {
+    max-height: 3rem;
+}
+
+.navbar-icon i {
+    font-size:3em; 
+    color:White;
+}
