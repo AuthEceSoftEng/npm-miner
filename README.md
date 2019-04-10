@@ -1,2 +1,2 @@
 # npm-miner
-Static code analysis of the npm registry
+Static code analysis of the npm registry.
