@@ -11,7 +11,7 @@ const fs = require('fs');
 // Connection URL
 const url = process.env.MONGODB_URL;
 const dbName = 'npmminer';
-const starsThreshold = 100
+const starsThreshold = 70
 const downloadsThreshold = 5000
 let db;
 let client;

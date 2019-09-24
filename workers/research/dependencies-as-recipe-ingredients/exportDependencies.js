@@ -40,6 +40,7 @@ MongoClient.connect(url, { useNewUrlParser: true }).then((aclient) => {
         { stars: { $gt: stars }, "npmsio.evaluation.popularity.downloadsCount": { $gt: downloads } })
         .project(project).toArray();
 }).then(packages => {
+    console.log(packages.length);
     // For each package (the key is the name of the package) produce an array with its dependencies
     const dependenciesPerPackage = _.chain(packages)
         .keyBy('name')

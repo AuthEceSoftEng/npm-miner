@@ -11,7 +11,7 @@ let converter = require('json-2-csv');
 // Connection URL
 const url = process.env.MONGODB_URL;
 const dbName = 'npmminer';
-const stars = 100;
+const stars = 70;
 const downloads = 5000;
 
 let db;
