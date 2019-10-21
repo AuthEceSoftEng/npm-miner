@@ -13,7 +13,7 @@ const opts = {
 const npm_registry = require('nano')(opts);
 
 const logger = bunyan.createLogger({ name: 'tracker' });
-const limit = 20;
+const limit = 50;
 const mq = process.env.RABBIT_URL;
 const q = 'analyses_queue';
 let conn;
@@ -22,7 +22,7 @@ let ch;
 const pm2 = require('./pm2mgt');
 
 cron.schedule(
-    '*/1 * * * *',
+    '*/10 * * * *',
     function() {
         logger.info('Restart workers');
         return pm2.respawn().then(() => {
