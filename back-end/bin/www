@@ -3,7 +3,9 @@
 /**
  * Module dependencies.
  */
-
+// const path = require('path')
+// const path_to_envs = path.resolve(path.join(__dirname, '../..'), '.env')
+// require('dotenv').config({path: path_to_envs})
 var app = require('../app');
 var debug = require('debug')('back-end:server');
 var http = require('http');

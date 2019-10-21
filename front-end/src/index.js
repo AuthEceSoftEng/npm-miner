@@ -5,6 +5,8 @@ import '../node_modules/bulma/css/bulma.css';
 import './index.css';
 import App from './App';
 import * as serviceWorker from './serviceWorker';
+import initGA from './init'
+initGA();
 
 ReactDOM.render(<Router><App/></Router>, document.getElementById('root'));
 

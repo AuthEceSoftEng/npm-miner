@@ -12,11 +12,11 @@ class Header extends Component {
                     <img src='/logo_white_colour.png' height='110%' alt='npm-miner'/>
                 </Link>
 
-                <a href="#" role="button" className="navbar-burger burger" aria-label="menu" aria-expanded="false" data-target="navbarBasicExample">
+                <button role="button" className="navbar-burger burger" aria-label="menu" aria-expanded="false" data-target="navbarBasicExample">
                     <span aria-hidden="true"></span>
                     <span aria-hidden="true"></span>
                     <span aria-hidden="true"></span>
-                </a>
+                </button>
             </div>
 
             <div className="navbar-end">

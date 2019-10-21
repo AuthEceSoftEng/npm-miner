@@ -1,3 +1,6 @@
+const path = require('path')
+const path_to_envs = path.resolve(path.join(__dirname, '..'), '.env')
+require('dotenv').config({path: path_to_envs})
 const cron = require('node-cron');
 const bunyan = require('bunyan');
 const amqp = require('amqplib');
@@ -10,8 +13,8 @@ const opts = {
 const npm_registry = require('nano')(opts);
 
 const logger = bunyan.createLogger({ name: 'tracker' });
-const limit = 200;
-const mq = process.env.RABBITMQ_URL;
+const limit = 20;
+const mq = process.env.RABBIT_URL;
 const q = 'analyses_queue';
 let conn;
 let ch;
@@ -19,7 +22,7 @@ let ch;
 const pm2 = require('./pm2mgt');
 
 cron.schedule(
-    '*/10 * * * *',
+    '*/1 * * * *',
     function() {
         logger.info('Restart workers');
         return pm2.respawn().then(() => {

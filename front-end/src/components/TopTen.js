@@ -1,6 +1,7 @@
 import React from 'react'
+import { Link } from 'react-router-dom';
 
-const TopTen = () => (
+const TopTen = (props) => (
     <div className="card">
         <header className="card-header has-text-centered">
             <p className="card-header-title">
@@ -18,56 +19,14 @@ const TopTen = () => (
                         </tr>
                     </thead>
                     <tbody>
-                        <tr>
-                            <th>1</th>
-                            <td>Bootstrpa</td>
-                            <td>128098</td>
-                        </tr>
-                        <tr>
-                            <th>2</th>
-                            <td>Bootstrpa</td>
-                            <td>128098</td>
-                        </tr>
-                        <tr>
-                            <th>3</th>
-                            <td>Bootstrpa</td>
-                            <td>128098</td>
-                        </tr>
-                        <tr>
-                            <th>4</th>
-                            <td>Bootstrpa</td>
-                            <td>128098</td>
-                        </tr>
-                        <tr>
-                            <th>5</th>
-                            <td>Bootstrpa</td>
-                            <td>128098</td>
-                        </tr>
-                        <tr>
-                            <th>6</th>
-                            <td>Bootstrpa</td>
-                            <td>128098</td>
-                        </tr>
-                        <tr>
-                            <th>7</th>
-                            <td>Bootstrpa</td>
-                            <td>128098</td>
-                        </tr>
-                        <tr>
-                            <th>8</th>
-                            <td>Bootstrpa</td>
-                            <td>128098</td>
-                        </tr>
-                        <tr>
-                            <th>9</th>
-                            <td>Bootstrpa</td>
-                            <td>128098</td>
-                        </tr>
-                        <tr>
-                            <th>10</th>
-                            <td>Bootstrpa</td>
-                            <td>128098</td>
-                        </tr>
+                        { 
+                            props.packages.map((p, index) => {
+                            return <tr key={p._id}>
+                                        <th>{(index + 1)}</th>
+                                        <td><Link to={`/package/${p.name}`}><span>{p.name}</span></Link></td>
+                                        <td>{p.stars}</td>
+                                    </tr>
+                        })}
                     </tbody>
                 </table>
             </div>

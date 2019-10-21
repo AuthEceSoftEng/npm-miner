@@ -1,0 +1,130 @@
+version: '3.7'
+
+services:
+
+  web:
+    container_name: npm-miner-web
+    build:
+      context: ./web
+    hostname: web
+    volumes:
+      - ./web/dev:/etc/nginx/conf.d/
+    networks:
+      backnet:
+        aliases:
+          - nic_nginx
+    ports:
+      - "8080:80"
+
+  back-end:
+    restart: always
+    container_name: npm-miner-back-end
+    build:
+      context: ./back-end
+    ports:
+      - '4000:4000'
+    environment:
+      MONGODB_URL: "${MONGODB_URL}"
+      PORT: "${PORT}"
+      WAIT_HOSTS: npm-miner-mongo:27017
+      WAIT_BEFORE_HOSTS: 60
+      WAIT_SLEEP_INTERVAL: 30
+      WAIT_HOSTS_TIMEOUT: 600
+    networks:
+      backnet:
+        aliases:
+          - nic_backend
+    depends_on:
+      - "mongo"
+
+  workers:
+    container_name: npm-miner-workers
+    build:
+      context: ./workers
+    volumes:
+      - ./workers:/app/
+    environment:
+      MONGODB_URL: "${MONGODB_URL}"
+      GITHUB_TOKEN: "${GITHUB_TOKEN}"
+      RABBIT_URL: "${RABBIT_URL}"
+      WAIT_HOSTS: npm-miner-mongo:27017, npm-miner-rabbit:5672
+      WAIT_BEFORE_HOSTS: 60
+      WAIT_SLEEP_INTERVAL: 30
+      WAIT_HOSTS_TIMEOUT: 600
+      NODE_ENV: development
+    networks:
+      backnet:
+        aliases:
+          - nic_workers
+    depends_on:
+      - "mongo"
+      - "rabbit"
+    
+
+  front-end:
+    container_name: npm-miner-front-end
+    build:
+      context: ./front-end
+    volumes:
+      - ./front-end:/app/
+    ports:
+      - '3000:3000'
+    networks:
+      backnet:
+        aliases:
+          - nic_front-end
+
+  rabbit:
+    image: rabbitmq:3-management
+    container_name: npm-miner-rabbit
+    restart: always
+    hostname: rabbit
+    environment:
+      RABBITMQ_DEFAULT_USER: "${RABBIT_USER}"
+      RABBITMQ_DEFAULT_PASS: "${RABBIT_PASS}"
+    ports:
+      - 8082:15672
+      - 5672:5672
+    networks:
+      backnet:
+        aliases:
+          - nic_rabbit
+
+  mongo:
+    image: mongo
+    hostname: mongodb
+    container_name: npm-miner-mongo
+    restart: always
+    volumes: 
+      - ~/Data/npm-miner/mongodb:/data/db
+    ports:
+      - 27017:27017
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: "${ME_CONFIG_MONGODB_ADMINUSERNAME}"
+      MONGO_INITDB_ROOT_PASSWORD: "${ME_CONFIG_MONGODB_ADMINPASSWORD}"
+    networks:
+      backnet:
+        aliases:
+          - nic_mongodb
+
+  mongo-express:
+    image: mongo-express
+    container_name: npm-miner-me
+    restart: always
+    depends_on:
+      - "mongo"
+    ports:
+      - 8081:8081
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: "${ME_CONFIG_MONGODB_ADMINUSERNAME}"
+      ME_CONFIG_MONGODB_ADMINPASSWORD: "${ME_CONFIG_MONGODB_ADMINPASSWORD}"
+      ME_CONFIG_BASICAUTH_USERNAME: "${ME_CONFIG_BASICAUTH_USERNAME}"
+      ME_CONFIG_BASICAUTH_PASSWORD: "${ME_CONFIG_BASICAUTH_PASSWORD}"
+    networks:
+      backnet:
+        aliases:
+          - nic_me
+    
+networks:
+  backnet:
+    driver: bridge

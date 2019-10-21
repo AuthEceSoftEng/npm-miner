@@ -13,21 +13,21 @@ module.exports = {
         }).then(() => {
             console.log('Stop 2');
             return pm2.stopAsync("worker2");
-        }).catch(err => {
-            console.error(err)
-        }).then(() => {
-            console.log('Stop 3');
-            return pm2.stopAsync("worker3");
-        }).catch(err => {
-            console.error(err)
-        }).then(() => {
-            console.log('Stop 4');
-            return pm2.stopAsync("worker4");
-        }).catch(err => {
-            console.error(err)
-        }).then(() => {
-            console.log('Stop 5');
-            return pm2.stopAsync("worker5");
+        // }).catch(err => {
+        //     console.error(err)
+        // }).then(() => {
+        //     console.log('Stop 3');
+        //     return pm2.stopAsync("worker3");
+        // }).catch(err => {
+        //     console.error(err)
+        // }).then(() => {
+        //     console.log('Stop 4');
+        //     return pm2.stopAsync("worker4");
+        // }).catch(err => {
+        //     console.error(err)
+        // }).then(() => {
+        //     console.log('Stop 5');
+        //     return pm2.stopAsync("worker5");
         }).catch(err => {
             console.error(err)
         }).then(() => {
@@ -62,57 +62,57 @@ module.exports = {
                 NODE_ENV: 'production'
                 }
             });
-        }).catch(err => {
-            console.error(err)
-        }).then(() => {
-            console.log('Start 3');
-            return pm2.startAsync({
-                name      : 'worker3',
-                script    : './worker.js',
-                args: ['3'],
-                env: {
-                PID: '3',
-                NODE_ENV: 'development'
-                },
-                env_production : {
-                PID: '3',
-                NODE_ENV: 'production'
-                }
-            });
-        }).catch(err => {
-            console.error(err)
-        }).then(() => {
-            console.log('Start 4');
-            return pm2.startAsync({
-                name: 'worker4',
-                script: './worker.js',
-                args: ['4'],
-                env: {
-                PID: '4',
-                NODE_ENV: 'development'
-                },
-                env_production : {
-                PID: '4',
-                NODE_ENV: 'production'
-                }
-            });
-        }).catch(err => {
-            console.error(err)
-        }).then(() => {
-            console.log('Start 5');
-            return pm2.startAsync({
-                name: 'worker5',
-                script: './worker.js',
-                args: ['5'],
-                env: {
-                PID: '5',
-                NODE_ENV: 'development'
-                },
-                env_production : {
-                PID: '5',
-                NODE_ENV: 'production'
-                }
-            });
+        // }).catch(err => {
+        //     console.error(err)
+        // }).then(() => {
+        //     console.log('Start 3');
+        //     return pm2.startAsync({
+        //         name      : 'worker3',
+        //         script    : './worker.js',
+        //         args: ['3'],
+        //         env: {
+        //         PID: '3',
+        //         NODE_ENV: 'development'
+        //         },
+        //         env_production : {
+        //         PID: '3',
+        //         NODE_ENV: 'production'
+        //         }
+        //     });
+        // }).catch(err => {
+        //     console.error(err)
+        // }).then(() => {
+        //     console.log('Start 4');
+        //     return pm2.startAsync({
+        //         name: 'worker4',
+        //         script: './worker.js',
+        //         args: ['4'],
+        //         env: {
+        //         PID: '4',
+        //         NODE_ENV: 'development'
+        //         },
+        //         env_production : {
+        //         PID: '4',
+        //         NODE_ENV: 'production'
+        //         }
+        //     });
+        // }).catch(err => {
+        //     console.error(err)
+        // }).then(() => {
+        //     console.log('Start 5');
+        //     return pm2.startAsync({
+        //         name: 'worker5',
+        //         script: './worker.js',
+        //         args: ['5'],
+        //         env: {
+        //         PID: '5',
+        //         NODE_ENV: 'development'
+        //         },
+        //         env_production : {
+        //         PID: '5',
+        //         NODE_ENV: 'production'
+        //         }
+        //     });
         }).catch(err => {
             console.error(err)
         }).then(() => {

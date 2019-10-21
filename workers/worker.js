@@ -1,18 +1,20 @@
+const path = require('path')
+const path_to_envs = path.resolve(path.join(__dirname, '..'), '.env')
+require('dotenv').config({path: path_to_envs})
 const amqp = require('amqplib');
 const bunyan = require('bunyan');
 const assert = require('assert');
 const uuidv1 = require('uuid/v1');
 const logger = bunyan.createLogger({ name: 'tracker' });
-const mq = process.env.RABBITMQ_URL;
+const mq = process.env.RABBIT_URL;
 const q = 'analyses_queue';
 let ch;
 let db;
 const npm_registry = require('nano')('https://skimdb.npmjs.com/registry');
-const octokit = require('@octokit/rest')();
-octokit.authenticate({
-    type: 'token',
-    token: process.env.GITHUB_TOKEN
-  })
+const Octokit = require('@octokit/rest')
+const octokit = new Octokit({
+    auth: `token ${process.env.GITHUB_TOKEN}`
+});
 const request = require('request-promise');
 const Promise = require('bluebird');
 Promise.config({
@@ -23,7 +25,6 @@ const mkdirp = require('mkdirp');
 // const pid = uuidv1();
 const pid = process.env.PID || process.argv[2];
 const dest = `./downloads-${pid}`;
-const path = require('path');
 const fs = require('fs');
 const targz = require('targz');
 const jssa = Promise.promisifyAll(require('jssa'));
@@ -34,11 +35,12 @@ const shell = require('shelljs');
 const MongoClient = require('mongodb').MongoClient;
 // Connection URL
 const url = process.env.MONGODB_URL;
+console.log(url)
 const dbName = 'npmminer';
 const rimraf = require('rimraf');
 const timeout = 50000;
 
-MongoClient.connect(url, { useNewUrlParser: true }).then((client) => {
+MongoClient.connect(url).then((client) => {
     db = client.db(dbName);
     logger.info("Connected successfully to server");
     const collection = db.collection('packages');
@@ -46,13 +48,22 @@ MongoClient.connect(url, { useNewUrlParser: true }).then((client) => {
 }).then((result) => {
     logger.info(result);
     return amqp.connect(mq);
+}).catch(err => {
+    console.error(err)
+    logger.error(`1: ${err}`);
 }).then(conn => {
     return conn.createChannel();
+}).catch(err => {
+    console.error(err)
+    logger.error(`1: ${err}`);
 }).then(channel => {
     ch = channel;
     return ch.assertQueue(q, {durable: true, arguments: {
         "x-message-ttl" : 540000
     }});
+}).catch(err => {
+    console.error(err)
+    logger.error(`1: ${err}`);
 }).then(() => {
     ch.prefetch(1);
     return ch.consume(q, msg => {
@@ -60,6 +71,7 @@ MongoClient.connect(url, { useNewUrlParser: true }).then((client) => {
         return work(job, ch, msg, db);
     });
 }).catch(err => {
+    console.error(err)
     logger.error(`1: ${err}`);
 }).finally(() => {
     // db.close();
@@ -331,32 +343,32 @@ function work(job, channel, msg, db) {
                     analysis.cancel();
                     package.jsinspect.message = 'jsinspect-not-completed';
                     return resolve('OK');
-                }).then(() => {
-                    logger.info('[12] sonarjs analysis');
-                    package.sonarjs = {};
-                    analysis = Promise.resolve(jssa.analyze_sonarjs(path.join(localPath,'package')));
-                    return Promise.race([
-                        analysis,
-                        new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), timeout))
-                    ]);
-                }).then(report => {
-                    package.sonarjs.message = 'completed';
-                    package.sonarjs.issues = report.sonarjs.length;
-                    package.sonarjs.blockerCount = _.sumBy(report.sonarjs, i => (i.severity === 'BLOCKER' ? 1 : 0));
-                    package.sonarjs.criticalCount = _.sumBy(report.sonarjs, i => (i.severity === 'CRITICAL' ? 1 : 0));
-                    package.sonarjs.majorCount = _.sumBy(report.sonarjs, i => (i.severity === 'MAJOR' ? 1 : 0));
-                    package.sonarjs.minorCount = _.sumBy(report.sonarjs, i => (i.severity === 'MINOR' ? 1 : 0));
-                    package.sonarjs.infoCount = _.sumBy(report.sonarjs, i => (i.severity === 'INFO' ? 1 : 0));
+                // }).then(() => {
+                //     logger.info('[12] sonarjs analysis');
+                //     package.sonarjs = {};
+                //     analysis = Promise.resolve(jssa.analyze_sonarjs(path.join(localPath,'package')));
+                //     return Promise.race([
+                //         analysis,
+                //         new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), timeout))
+                //     ]);
+                // }).then(report => {
+                //     package.sonarjs.message = 'completed';
+                //     package.sonarjs.issues = report.sonarjs.length;
+                //     package.sonarjs.blockerCount = _.sumBy(report.sonarjs, i => (i.severity === 'BLOCKER' ? 1 : 0));
+                //     package.sonarjs.criticalCount = _.sumBy(report.sonarjs, i => (i.severity === 'CRITICAL' ? 1 : 0));
+                //     package.sonarjs.majorCount = _.sumBy(report.sonarjs, i => (i.severity === 'MAJOR' ? 1 : 0));
+                //     package.sonarjs.minorCount = _.sumBy(report.sonarjs, i => (i.severity === 'MINOR' ? 1 : 0));
+                //     package.sonarjs.infoCount = _.sumBy(report.sonarjs, i => (i.severity === 'INFO' ? 1 : 0));
                 
-                    logger.info(package.sonarjs.issues);
-                    return resolve('OK');
-                }).catch(err => {
-                    logger.error(`6: ${err}`);
-                    logger.error('sonarjs issue');
-                    package.error6 = err;
-                    analysis.cancel();
-                    package.sonarjs.message = 'sonarjs-not-completed';
-                    return resolve('OK');
+                //     logger.info(package.sonarjs.issues);
+                //     return resolve('OK');
+                // }).catch(err => {
+                //     logger.error(`6: ${err}`);
+                //     logger.error('sonarjs issue');
+                //     package.error6 = err;
+                //     analysis.cancel();
+                //     package.sonarjs.message = 'sonarjs-not-completed';
+                //     return resolve('OK');
                 }).then(() => {
                     logger.info('[13] analyses completed');
                     rimraf.sync(dest);

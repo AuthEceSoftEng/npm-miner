@@ -2,3 +2,4 @@ node_modules
 downloads*
 *.eps
 *.csv
+.env

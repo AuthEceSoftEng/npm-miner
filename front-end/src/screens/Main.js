@@ -2,12 +2,19 @@ import React, { Component } from 'react';
 import { BeatLoader } from 'react-spinners';
 import PropTypes from 'prop-types';
 import TopTen from '../components/TopTen';
+import axios from 'axios';
 
 class Main extends Component {
 
   constructor(props) {
     super(props);
-    this.state = {value: ''};
+    this.state = {
+      value: '',
+      loading: true,
+      loc: 0,
+      packages: 0,
+      top_stars: []
+    };
 
     this.handleChange = this.handleChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
@@ -21,6 +28,17 @@ class Main extends Component {
     event.preventDefault();
     const path = `/search?q=${this.state.value}`;
     this.context.router.history.push(path)
+  }
+
+  componentWillMount() {
+    axios.get(`http://localhost:4000/api/dashboard`).then(response => {
+      this.setState({
+        loading: false,
+        loc: response.data.loc,
+        packages: response.data.packages,
+        top_stars: response.data.top_stars
+      })
+    })
   }
 
   render() {
@@ -78,15 +96,32 @@ class Main extends Component {
             <div className="tile is-ancestor">
               <div className="tile is-parent">
                 <article className="tile is-child box">
-                  <p className="title">6804125</p>
-                  <p className="subtitle">out of 760415 packages
-                  </p>
-  identification              </article>
+                  {!this.state.loading ? (
+                    <div>
+                      <p className="title">{this.state.packages}</p>
+                      <p className="subtitle">packages mined</p>
+                    </div>
+                    ) : (
+                      <BeatLoader
+                        color={'black'} 
+                      />
+                    )
+                  }               
+                </article>
               </div>
               <div className="tile is-parent">
                 <article className="tile is-child box">
-                  <p className="title">3000000</p>
-                  <p className="subtitle">Lines of Code checked</p>
+                  {!this.state.loading ? (
+                    <div>
+                      <p className="title">{this.state.loc}</p>
+                      <p className="subtitle">Lines of Code checked</p>
+                    </div>
+                  ) : (
+                    <BeatLoader
+                      color={'black'} 
+                    />
+                  )
+                  }
                 </article>
               </div>
               {/* <div className="tile is-parent">
@@ -105,11 +140,20 @@ class Main extends Component {
           </div>
         </section>
         <section className="section">
-          <div className="container">
-              <div className="columns">
-                <div className="column is-one-third"><TopTen/></div>
-                <div className="column is-one-third"><TopTen/></div>
-                <div className="column is-one-third"><TopTen/></div>
+          <div className="container has-text-centered">
+              <div className="columns is-offset-one-half">
+                <div className="column is-one-third">
+                  {!this.state.loading ? (
+                      <TopTen packages={this.state.top_stars} />
+                    ) : (
+                      <BeatLoader
+                        color={'black'} 
+                      />
+                    )
+                  }
+                </div>
+                {/* <div className="column is-one-third"><TopTen/></div>
+                <div className="column is-one-third"><TopTen/></div> */}
               </div>
           </div>
         </section>
