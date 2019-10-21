@@ -20,7 +20,7 @@ class Search extends Component {
     this.setState(
       {query}
     );
-    axios.get(`http://localhost:4000/api/search?q=${query}`).then(response => {
+    axios.get(`${process.env.API_URL}/api/search?q=${query}`).then(response => {
       this.setState(
         {
           npmPackages: response.data,

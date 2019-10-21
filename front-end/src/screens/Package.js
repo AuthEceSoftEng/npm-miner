@@ -22,7 +22,7 @@ class Package extends Component {
         packageName
       }
     )
-    axios.get(`http://localhost:4000/api/packages/${packageName}`).then(response => {
+    axios.get(`${process.env.API_URL}/api/packages/${packageName}`).then(response => {
       console.log(response.data);
       this.setState({
         package: response.data,

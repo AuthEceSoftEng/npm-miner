@@ -31,7 +31,7 @@ class Main extends Component {
   }
 
   componentWillMount() {
-    axios.get(`http://localhost:4000/api/dashboard`).then(response => {
+    axios.get(`${process.env.API_URL}/api/dashboard`).then(response => {
       this.setState({
         loading: false,
         loc: response.data.loc,
