@@ -12,7 +12,7 @@ RUN chmod +x /wait
 
 RUN chmod 755 /app
 
-RUN npm install
+RUN npm install --dotenv-extended
 # If you are building your code for production
 # RUN npm install --only=production
 
