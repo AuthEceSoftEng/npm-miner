@@ -3,6 +3,8 @@ import { BeatLoader } from 'react-spinners';
 import { Link } from 'react-router-dom';
 import queryString from 'query-string'
 import axios from 'axios';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faTimesCircle, faCheckCircle } from '@fortawesome/free-solid-svg-icons'
 
 class Search extends Component {
 
@@ -20,7 +22,7 @@ class Search extends Component {
     this.setState(
       {query}
     );
-    axios.get(`${process.env.API_URL}/api/search?q=${query}`).then(response => {
+    axios.get(`${process.env.REACT_APP_API_URL}/api/search?q=${query}`).then(response => {
       this.setState(
         {
           npmPackages: response.data,
@@ -42,6 +44,7 @@ class Search extends Component {
                           {this.state.npmPackages.map(v => {
                               return (
                               <li key={v.name}>
+                                  <span>{ v.crawled ?<FontAwesomeIcon icon={faCheckCircle} color="green"/>:<FontAwesomeIcon icon={faTimesCircle} color="red"/>} </span>
                                   <Link to={`/package/${v.name}`}><span>{v.name}</span></Link>
                                   <span> - </span>
                                   <span>{v.description}</span>

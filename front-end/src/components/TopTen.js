@@ -1,11 +1,12 @@
 import React from 'react'
 import { Link } from 'react-router-dom';
+import NumberFormat from 'react-number-format';
 
 const TopTen = (props) => (
     <div className="card">
         <header className="card-header has-text-centered">
             <p className="card-header-title">
-            Top 10 Starred GitHub Repos
+            {props.title}
             </p>
         </header>
         <div className="card-content">
@@ -14,8 +15,8 @@ const TopTen = (props) => (
                     <thead>
                         <tr>
                             <th><abbr title="Position">#</abbr></th>
-                            <th>Package Name</th>
-                            <th>Score</th>
+                            <th>{props.name}</th>
+                            <th>{props.score}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -23,8 +24,8 @@ const TopTen = (props) => (
                             props.packages.map((p, index) => {
                             return <tr key={p._id}>
                                         <th>{(index + 1)}</th>
-                                        <td><Link to={`/package/${p.name}`}><span>{p.name}</span></Link></td>
-                                        <td>{p.stars}</td>
+                                        <td><span>{p.name}</span></td>
+                                        <td><NumberFormat value={p.score} displayType={'text'} thousandSeparator={true} /></td>
                                     </tr>
                         })}
                     </tbody>

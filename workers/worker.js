@@ -90,7 +90,9 @@ function work(job, channel, msg, db) {
             package.id = doc._id;
             package.name = doc.name;
             package.processing_date = Date.now();
-            package.latest_package_json = doc.versions[doc['dist-tags'].latest];
+            // package.latest_package_json = doc.versions[doc['dist-tags'].latest];
+            package.dependencies = doc.versions[doc['dist-tags'].latest].dependencies;
+            package.devDependencies = doc.versions[doc['dist-tags'].latest].devDependencies;
             let analysis;
             let localPath;
             let paths;

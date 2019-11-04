@@ -3,15 +3,17 @@
 /**
  * Module dependencies.
  */
-// const path = require('path')
-// const path_to_envs = path.resolve(path.join(__dirname, '../..'), '.env')
-// require('dotenv').config({path: path_to_envs})
+path = require('path')
+if(process.env.NODE_ENV === "development") {
+  require('dotenv').config({path: path.resolve(process.cwd(), '.env')})
+}
 var app = require('../app');
 var debug = require('debug')('back-end:server');
 var http = require('http');
 
 const MongoClient = require('mongodb').MongoClient;
 const url = process.env.MONGODB_URL;
+console.log(url)
 
 /**
  * Get port from environment and store in Express.

@@ -3,6 +3,7 @@ import Header from './Header';
 import Footer from './Footer';
 import NotFound from './screens/NotFound';
 import About from './screens/About';
+import Stats from './screens/Stats';
 import Main from './screens/Main';
 import Search from './screens/Search';
 import Package from './screens/Package';
@@ -18,6 +19,7 @@ class App extends Component {
           <div id='main'>
             <Switch>
               <Route exact path='/' component={withTracker(Main)} />
+              <Route exact path='/stats' component={withTracker(Stats)} />
               <Route exact path='/about' component={withTracker(About)} />
               <Route exact path='/search' component={withTracker(Search)} />
               <Route path='/package/:packagename' component={withTracker(Package)} />

@@ -9,18 +9,27 @@ const _ = require('lodash')
 router.get('/search', function(req, res) {
   console.log(req.query.q)
   const query = req.query.q;
+  let results = []
   shelljs.execAsync(`npm search ${query} --json`, {
     silent: true
   }).then(data => {
-    return res.json(JSON.parse(data).map(o => {
+    results = JSON.parse(data).map(o => {
       return { name: o.name, description: o.description };
-    }));
+    })
+    let names = _.map(JSON.parse(data), 'name')
+    return req.app.locals.collection.find({name: {$in: names}}, {projection:{_id: 0, name: 1}}).toArray()
+  }).then(data => {
+    let names_in_db = _.map(data, 'name')
+    console.log(names_in_db)
+    results = _.map(results, x => names_in_db.includes(x.name) ? _.defaults(x, {crawled: true}) : _.defaults(x, {crawled: false}))
+    return res.json(results);
   });
 });
 
 router.get('/dashboard', function(req, res) {
   let loc_mined = 0
   let packages_mined = 0
+  let packages_per_day = 0
   req.app.locals.collection.aggregate([{
     $project: {
       numOfLinesExist: { 
@@ -38,16 +47,19 @@ router.get('/dashboard', function(req, res) {
     return req.app.locals.collection.countDocuments()
   }).then(result => {
     packages_mined = result
-    return req.app.locals.collection.find(
-      {},
-      {
-        sort: [['stars', -1]],
-        projection: {name: 1, stars: 1},
-        limit: 10
-      }
-    ).toArray()
+    const yesterday = Date.now() - 1000*60*60*24
+    return req.app.locals.collection.countDocuments( { processing_date: { $gt:  yesterday} } )
   }).then(result => {
-    return res.json({ loc: loc_mined, packages: packages_mined, top_stars: result })
+    console.log(result)
+    packages_per_day = result
+    return req.app.locals.collection.aggregate([
+      {$group: {_id: '$github_repository',
+                'name': {$first: '$github_repository'},
+                'score': {$first: '$stars'},
+                },
+     }]).sort({score: -1}).limit(10).toArray()
+  }).then(result => {
+    return res.json({ loc: loc_mined, packages: packages_mined, top_stars: result, packages_per_day: packages_per_day})
   }).catch(err => {
     console.error(err)
     return res.sendStatus(500)
