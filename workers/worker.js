@@ -1,6 +1,8 @@
 const path = require('path')
-const path_to_envs = path.resolve(path.join(__dirname, '..'), '.env')
-require('dotenv').config({path: path_to_envs})
+if(process.env.NODE_ENV === "development") {
+    const path_to_envs = path.resolve(path.join(__dirname, '..'), '.env')
+    require('dotenv').config({path: path_to_envs})
+}
 const amqp = require('amqplib');
 const bunyan = require('bunyan');
 const assert = require('assert');

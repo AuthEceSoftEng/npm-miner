@@ -70,7 +70,7 @@ services:
     ports:
       - '3000:3000'
     environment:
-      API_URL: "${API_URL}"
+      REACT_APP_API_URL: "${REACT_APP_API_URL}"
     networks:
       backnet:
         aliases:
