@@ -40,6 +40,8 @@ class Search extends Component {
               <h1 className='title'>Results</h1>
               <span className='subtitle'>npm registry search results for query: {this.state.query}</span>
               {!this.state.loading ? (
+                  <div>
+                  {this.state.npmPackages.length > 0 ?
                       <ul>
                           {this.state.npmPackages.map(v => {
                               return (
@@ -51,7 +53,8 @@ class Search extends Component {
                               </li>
                               );
                           })}
-                      </ul>
+                      </ul> : <p className="has-text-centered">Nothing found</p> }
+                  </div>
                   ) : (
                       <div className='has-text-centered'>
                           <BeatLoader
