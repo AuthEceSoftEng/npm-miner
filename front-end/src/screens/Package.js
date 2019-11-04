@@ -22,7 +22,7 @@ class Package extends Component {
         packageName
       }
     )
-    axios.get(`${process.env.API_URL}/api/packages/${packageName}`).then(response => {
+    axios.get(`${process.env.REACT_APP_API_URL}/api/packages/${packageName}`).then(response => {
       console.log(response.data);
       this.setState({
         package: response.data,
@@ -54,11 +54,11 @@ class Package extends Component {
                             <tbody>
                                 <tr>
                                     <td>GitHub Repo</td>
-                                    <td>{this.state.package.github_repository}</td>
+                                    <td>{this.state.package.github_repository ? this.state.package.github_repository : 'No GitHub repo identified'}</td>
                                 </tr>
                                 <tr>
                                     <td>GitHub Stars</td>
-                                    <td>{this.state.package.stars}</td>
+                                    <td>{this.state.package.stars ? this.state.package.stars : 'No GitHub repo identified'}</td>
                                 </tr>
                                 <tr>
                                     <td>Number of Files</td>
@@ -86,30 +86,33 @@ class Package extends Component {
                                 </tr>
                                 <tr>
                                     <td>npms.io Maintenance</td>
-                                    <td>{Number(100*this.state.package.npmsio.score.detail.maintenance).toFixed(2)}</td>
+                                    <td>{this.state.package.npmsio ? Number(100*this.state.package.npmsio.score.detail.maintenance).toFixed(2) : 'NA'}</td>
                                 </tr>
                                 <tr>
                                     <td>npms.io Popularity</td>
-                                    <td>{Number(100*this.state.package.npmsio.score.detail.popularity).toFixed(2)}</td>
+                                    <td>{this.state.package.npmsio ? Number(100*this.state.package.npmsio.score.detail.popularity).toFixed(2) : 'NA'}</td>
                                 </tr>
                                 <tr>
                                     <td>npms.io Quality</td>
-                                    <td>{Number(100*this.state.package.npmsio.score.detail.quality).toFixed(2)}</td>
+                                    <td>{this.state.package.npmsio ? Number(100*this.state.package.npmsio.score.detail.quality).toFixed(2) : 'NA'}</td>
                                 </tr>
                                 <tr>
                                     <td>npms.io Overall</td>
-                                    <td>{Number(100*this.state.package.npmsio.score.final).toFixed(2)}</td>
+                                    <td>{this.state.package.npmsio ? Number(100*this.state.package.npmsio.score.final).toFixed(2) : 'NA'}</td>
                                 </tr>
                             </tbody>
                           </table>
-                          <h2 className="subtitle is-6">eslint</h2>
-                          <p className="is-size-7 has-text-grey">Runs the basic setup and the plugins: </p>
-                          <h2 className="subtitle is-6">sonarjs</h2>
-                          <h2 className="subtitle is-6">npm audit</h2>
-                          <h2 className="subtitle is-6">jsinspect</h2>
-                          <p className="is-size-7 has-text-grey">Threshold was set to 30.</p>
-                          <h2 className="subtitle is-6">escomplex</h2>
-                          <p className="is-size-7 has-text-grey">Metrics from ES5 js files only</p>
+                          {this.state.package.github_repository ?
+                          <div>
+                            <h2 className="subtitle is-6">eslint</h2>
+                            <p className="is-size-7 has-text-grey">Runs the basic setup and the plugins: </p>
+                            <h2 className="subtitle is-6">sonarjs</h2>
+                            <h2 className="subtitle is-6">npm audit</h2>
+                            <h2 className="subtitle is-6">jsinspect</h2>
+                            <p className="is-size-7 has-text-grey">Threshold was set to 30.</p>
+                            <h2 className="subtitle is-6">escomplex</h2>
+                            <p className="is-size-7 has-text-grey">Metrics from ES5 js files only</p>
+                          </div> : <div></div> }
                         </div>
                       ) :
                       (

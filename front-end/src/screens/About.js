@@ -15,21 +15,28 @@ class About extends Component {
                         for developers to query for specific npm packages and receive 
                         informative responses.
                     </p>
+                    <p>At the moment only packages that are found in GitHub repositories are analyzed.</p>
                     <h2 className='title is-6'>Tools and APIs</h2>
                     <p className='mb-10'>We gather data from the following tools and APIs:</p>
                     <ul>
                         <li>eslint</li>
+                        <ul>
+                            <li>sonarjs plugin</li>
+                            <li>eslint-security-plugin</li>
+                        </ul>
                         <li>escomplex</li>
                         <li>npm audit</li>
-                        <li>eslint-security-plugin</li>
                         <li>jsinspect</li>
-                        <li>sonarjs</li>
                         <li>npms.io</li>
                         <li>GitHub</li>
                     </ul>
+                    <h2 className='title is-6'>Contact</h2>
+                    <p className='mb-10'>
+                        For any inquiries please contact <a href='https://github.com/kyrcha'>Kyriakos Chatzidimitriou</a> or open an <a href='https://github.com/AuthEceSoftEng/npm-miner/issues'>issue</a>.
+                    </p>
                     <h2 className='title is-6'>Paper &amp; Dataset</h2>
                     <p className='mb-10'>
-                        For a more detailed read on the <em>npm-miner</em> one can read the following
+                        For a more detailed description of the <em>npm-miner</em> one can read the following
                         publication:
                     </p>
                     <p className='mb-10'>

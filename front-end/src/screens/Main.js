@@ -3,6 +3,7 @@ import { BeatLoader } from 'react-spinners';
 import PropTypes from 'prop-types';
 import TopTen from '../components/TopTen';
 import axios from 'axios';
+import NumberFormat from 'react-number-format';
 
 class Main extends Component {
 
@@ -13,6 +14,7 @@ class Main extends Component {
       loading: true,
       loc: 0,
       packages: 0,
+      packages_per_day: 0,
       top_stars: []
     };
 
@@ -31,11 +33,12 @@ class Main extends Component {
   }
 
   componentWillMount() {
-    axios.get(`${process.env.API_URL}/api/dashboard`).then(response => {
+    axios.get(`${process.env.REACT_APP_API_URL}/api/dashboard`).then(response => {
       this.setState({
         loading: false,
         loc: response.data.loc,
         packages: response.data.packages,
+        packages_per_day: response.data.packages_per_day,
         top_stars: response.data.top_stars
       })
     })
@@ -98,7 +101,7 @@ class Main extends Component {
                 <article className="tile is-child box">
                   {!this.state.loading ? (
                     <div>
-                      <p className="title">{this.state.packages}</p>
+                      <p className="title"><NumberFormat value={this.state.packages} displayType={'text'} thousandSeparator={true} /></p>
                       <p className="subtitle">packages mined</p>
                     </div>
                     ) : (
@@ -113,8 +116,23 @@ class Main extends Component {
                 <article className="tile is-child box">
                   {!this.state.loading ? (
                     <div>
-                      <p className="title">{this.state.loc}</p>
-                      <p className="subtitle">Lines of Code checked</p>
+                      <p className="title"><NumberFormat value={this.state.loc} displayType={'text'} thousandSeparator={true} /></p>
+                      <p className="subtitle">lines of code checked</p>
+                    </div>
+                  ) : (
+                    <BeatLoader
+                      color={'black'} 
+                    />
+                  )
+                  }
+                </article>
+              </div>
+              <div className="tile is-parent">
+                <article className="tile is-child box">
+                  {!this.state.loading ? (
+                    <div>
+                      <p className="title"><NumberFormat value={this.state.packages_per_day} displayType={'text'} thousandSeparator={true} /></p>
+                      <p className="subtitle">packages mined last 24h</p>
                     </div>
                   ) : (
                     <BeatLoader
@@ -126,12 +144,6 @@ class Main extends Component {
               </div>
               {/* <div className="tile is-parent">
                 <article className="tile is-child box">
-                  <p className="title">Three</p>
-                  <p className="subtitle">Subtitle</p>
-                </article>
-              </div>
-              <div className="tile is-parent">
-                <article className="tile is-child box">
                   <p className="title">Four</p>
                   <p className="subtitle">Subtitle</p>
                 </article>
@@ -141,10 +153,11 @@ class Main extends Component {
         </section>
         <section className="section">
           <div className="container has-text-centered">
-              <div className="columns is-offset-one-half">
+              <div className="columns">
+                <div className="column is-one-third"></div>
                 <div className="column is-one-third">
                   {!this.state.loading ? (
-                      <TopTen packages={this.state.top_stars} />
+                      <TopTen title={"Top 10 Starred GitHub Repos in npm"} name={"Repository"} score={"Stars"} packages={this.state.top_stars} />
                     ) : (
                       <BeatLoader
                         color={'black'} 
@@ -155,6 +168,7 @@ class Main extends Component {
                 {/* <div className="column is-one-third"><TopTen/></div>
                 <div className="column is-one-third"><TopTen/></div> */}
               </div>
+              <div className="column is-one-third"></div>
           </div>
         </section>
       </div>
