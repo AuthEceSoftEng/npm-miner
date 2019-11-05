@@ -384,7 +384,7 @@ function work(job, channel, msg, db) {
                     channel.ack(msg);
                     const col = db.collection('packages');
                     logger.info('[14] Document upserted');
-                    return col.replaceOne({name: package.name}, package, { upsert: true });
+                    return col.findOneAndReplace({name: package.name}, package, { upsert: true });
                 })
             } else {
                 logger.info(`No github repo identified`);
@@ -392,14 +392,14 @@ function work(job, channel, msg, db) {
                 channel.ack(msg);
                 const col = db.collection('packages');
                 logger.info('[14] Document upserted');
-                return col.replaceOne({name: package.name}, package, { upsert: true });
+                return col.findOneAndReplace({name: package.name}, package, { upsert: true });
             }
         }).catch(err => {
             logger.error(`8: ${err}`);
             const col = db.collection('packages');
             package.error8 = err;
             logger.info('[14] Document upserted');
-            return col.replaceOne({name: job.package_name}, package, { upsert: true });
+            return col.findOneAndReplace({name: job.package_name}, package, { upsert: true });
         });
     });
 }
