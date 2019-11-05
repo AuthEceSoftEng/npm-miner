@@ -92,7 +92,7 @@ function work(job, channel, msg, db) {
             package.id = doc._id;
             package.name = doc.name;
             package.processing_date = Date.now();
-            // package.latest_package_json = doc.versions[doc['dist-tags'].latest];
+            package.tarball = doc.versions[doc['dist-tags'].latest].dist.tarball;
             package.dependencies = doc.versions[doc['dist-tags'].latest].dependencies;
             package.devDependencies = doc.versions[doc['dist-tags'].latest].devDependencies;
             let analysis;
@@ -145,7 +145,7 @@ function work(job, channel, msg, db) {
                     }
                     rimraf.sync(dest);
                     mkdirp.sync(dest);
-                    const url = package.latest_package_json.dist.tarball;
+                    const url = package.tarball;
                     logger.info(`[6] Downloading tarball from: ${url}`);
                     let filename = url.substr(url.lastIndexOf('/'));
                     const tarzball = path.join(dest, filename);
