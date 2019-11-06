@@ -14,7 +14,15 @@ The developed services include:
     - the crawler
     - the analyzers
 
-All the services above are handled with `pm2` module.
+The workers above are handled with `pm2` module.
+
+## Architecture and data-flow
+
+![](npm-miner-architecture.png)
+
+Front-facing there is Nginx that handles the web traffic and serves the React.js built Single Page Application (SPA). The SPA sends REST API requests to the node.js-express back-end server. The back-end server on its turn queries the MongoDB for the requested data and sends them back to the front-end for viewing.
+
+On the mining side, the Crawler through a cron job, every ten minutes requests a random page of 100 packages from the CouchDB of the npm-registry. Immediatelly it sends 100 messages with the package.json files of the packages to the RabbitMQ to be consumed by the workers. The workers request metadata from GitHub and the analysis of npms.io and then download the tarball from the link provided in the latest package.json file and perform the static code analysis, storing the results in the MongoDB.
 
 ## Local
 

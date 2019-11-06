@@ -104,15 +104,40 @@ class Package extends Component {
                           </table>
                           {this.state.package.github_repository ?
                           <div>
+                            <h2 className="subtitle is-6">Directory analysis</h2>
+                            <ul>
+                              <li>Maximum directory depth: {this.state.package.maxDirDepth || 'NA'}</li>
+                              <li>Minimum directory depth: {this.state.package.minDirDepth || 'NA'}</li>
+                            </ul>
                             <h2 className="subtitle is-6">eslint</h2>
-                            <p className="is-size-7 has-text-grey">Runs the basic setup and the plugins: </p>
-                            <h2 className="subtitle is-6">sonarjs</h2>
-                            <h2 className="subtitle is-6">npm audit</h2>
-                            <h2 className="subtitle is-6">jsinspect</h2>
-                            <p className="is-size-7 has-text-grey">Threshold was set to 30.</p>
+                            {this.state.package.eslint ?
+                            <ul>
+                              <li>Errors: {this.state.package.eslint.errorCount || 'NA'}</li>
+                              <li>Warnings: {this.state.package.eslint.warningCount || 'NA'}</li>
+                              <li>Details:</li>
+                              <ul>{Object.entries(this.state.package.eslint.typesAndCounts).map(([key, val]) => ({ key, val })).map(issue => {
+                                return <li key={issue.key}>{issue.key}: {issue.val}</li>
+                                })}
+                              </ul>
+                            </ul> : <p>No eslint analysis</p>}
                             <h2 className="subtitle is-6">escomplex</h2>
+                            {this.state.package.escomplex ?
+                            <ul>
+                            Number(100*this.state.package.npmsio.score.detail.maintenance).toFixed(2)
+                              <li>Cyclomatic Complexity: {Number(this.state.package.escomplex.cyclomatic).toFixed(2) || 'NA'}</li>
+                              <li>Maintainability Index: {Number(this.state.package.escomplex.maintainability).toFixed(2) || 'NA'}</li>
+                              <li>Parameters: {Number(this.state.package.escomplex.params).toFixed(2) || 'NA'}</li>
+                              <li>Effort: {Number(this.state.package.escomplex.effort).toFixed(2) || 'NA'}</li>
+                              <li>Total Lines of Code Logical: {this.state.package.escomplex.tlocl || 'NA'}</li>
+                              <li>Total Lines of Code Physical: {this.state.package.escomplex.tlocp || 'NA'}</li>
+                            </ul> : <p>No escomplex analysis</p>}
                             <p className="is-size-7 has-text-grey">Metrics from ES5 js files only</p>
                           </div> : <div></div> }
+                            <h2 className="subtitle is-6">npm audit</h2>
+                            <p>Vulnerabilities: {this.state.package.npmaudit.results.actions.length}</p>
+                            <h2 className="subtitle is-6">jsinspect</h2>
+                            <p>Duplicates: {this.state.package.jsinspect.duplicates}</p>
+                            <p className="is-size-7 has-text-grey">Threshold was set to 30.</p>
                         </div>
                       ) :
                       (
