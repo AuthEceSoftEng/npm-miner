@@ -1,4 +1,4 @@
-version: '2.2'
+version: '3.7'
 
 services:
 
@@ -15,6 +15,11 @@ services:
           - nic_nginx
     ports:
       - "8080:80"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
 
   back-end:
     restart: always
@@ -36,6 +41,11 @@ services:
           - nic_backend
     depends_on:
       - "mongo"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
 
   workers:
     container_name: npm-miner-workers
@@ -59,6 +69,11 @@ services:
     depends_on:
       - "mongo"
       - "rabbit"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
     
 
   front-end:
@@ -75,9 +90,19 @@ services:
       backnet:
         aliases:
           - nic_front-end
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"s
 
   rabbit:
     image: rabbitmq:3-management
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
     container_name: npm-miner-rabbit
     restart: always
     hostname: rabbit
@@ -94,6 +119,11 @@ services:
 
   mongo:
     image: mongo
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
     hostname: mongodb
     container_name: npm-miner-mongo
     restart: always
@@ -111,6 +141,11 @@ services:
 
   mongo-express:
     image: mongo-express
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
     container_name: npm-miner-me
     restart: always
     depends_on:

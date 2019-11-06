@@ -1,9 +1,14 @@
-version: '3.6'
+version: '3.7'
 
 services:
 
   rabbit:
     image: rabbitmq:3-management
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
     restart: always
     hostname: rabbit
     environment:
@@ -15,6 +20,11 @@ services:
 
   mongo:
     image: mongo
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
     restart: always
     volumes: 
       - ~/Data/npm-miner/mongodb:/data/db
@@ -26,6 +36,11 @@ services:
 
   mongo-express:
     image: mongo-express
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
     restart: always
     ports:
       - 8081:8081

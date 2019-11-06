@@ -1,9 +1,14 @@
-version: '2.2'
+version: '3.7'
 
 services:
 
   web:
     container_name: npm-miner-web
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
     build:
       context: ./web
     hostname: web
@@ -19,6 +24,11 @@ services:
   back-end:
     restart: always
     container_name: npm-miner-back-end
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
     build:
       context: ./back-end
     ports:
@@ -39,6 +49,11 @@ services:
 
   workers:
     container_name: npm-miner-workers
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
     build:
       context: ./workers
     volumes:
@@ -63,6 +78,11 @@ services:
 
   front-end:
     container_name: npm-miner-front-end
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
     build:
       context: ./front-end
     volumes:
@@ -78,6 +98,11 @@ services:
 
   rabbit:
     image: rabbitmq:3-management
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
     container_name: npm-miner-rabbit
     restart: always
     hostname: rabbit
@@ -94,6 +119,11 @@ services:
 
   mongo:
     image: mongo
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
     hostname: mongodb
     container_name: npm-miner-mongo
     restart: always
@@ -111,6 +141,11 @@ services:
 
   mongo-express:
     image: mongo-express
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
     container_name: npm-miner-me
     restart: always
     depends_on:
