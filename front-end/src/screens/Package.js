@@ -123,10 +123,11 @@ class Package extends Component {
                             <h2 className="subtitle is-6">escomplex</h2>
                             {this.state.package.escomplex ?
                             <ul>
-                              <li>Cyclomatic Complexity: {this.state.package.escomplex.cyclomatic || 'NA'}</li>
-                              <li>Maintainability Index: {this.state.package.escomplex.maintainability || 'NA'}</li>
-                              <li>Parameters: {this.state.package.escomplex.params || 'NA'}</li>
-                              <li>Effort: {this.state.package.escomplex.effort || 'NA'}</li>
+                            Number(100*this.state.package.npmsio.score.detail.maintenance).toFixed(2)
+                              <li>Cyclomatic Complexity: {Number(this.state.package.escomplex.cyclomatic).toFixed(2) || 'NA'}</li>
+                              <li>Maintainability Index: {Number(this.state.package.escomplex.maintainability).toFixed(2) || 'NA'}</li>
+                              <li>Parameters: {Number(this.state.package.escomplex.params).toFixed(2) || 'NA'}</li>
+                              <li>Effort: {Number(this.state.package.escomplex.effort).toFixed(2) || 'NA'}</li>
                               <li>Total Lines of Code Logical: {this.state.package.escomplex.tlocl || 'NA'}</li>
                               <li>Total Lines of Code Physical: {this.state.package.escomplex.tlocp || 'NA'}</li>
                             </ul> : <p>No escomplex analysis</p>}

@@ -94,7 +94,7 @@ services:
       driver: "json-file"
       options:
         max-size: "10m"
-        max-file: "5"s
+        max-file: "5"
 
   rabbit:
     image: rabbitmq:3-management
