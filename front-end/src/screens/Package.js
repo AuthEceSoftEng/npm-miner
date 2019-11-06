@@ -132,12 +132,18 @@ class Package extends Component {
                               <li>Total Lines of Code Physical: {this.state.package.escomplex.tlocp || 'NA'}</li>
                             </ul> : <p>No escomplex analysis</p>}
                             <p className="is-size-7 has-text-grey">Metrics from ES5 js files only</p>
-                          </div> : <div></div> }
                             <h2 className="subtitle is-6">npm audit</h2>
+                            {this.state.package.npmaudit ?
                             <p>Vulnerabilities: {this.state.package.npmaudit.results.actions.length}</p>
+                            : <p>No npm audit analysis</p>}
                             <h2 className="subtitle is-6">jsinspect</h2>
-                            <p>Duplicates: {this.state.package.jsinspect.duplicates}</p>
-                            <p className="is-size-7 has-text-grey">Threshold was set to 30.</p>
+                            {this.state.package.jsinspect ?
+                            <div>
+                              <p>Duplicates: {this.state.package.jsinspect.duplicates}</p>
+                              <p className="is-size-7 has-text-grey">Threshold was set to 30.</p>
+                            </div>
+                            : <p>No jsinspect analysis</p>}
+                            </div> : <div></div> }
                         </div>
                       ) :
                       (
