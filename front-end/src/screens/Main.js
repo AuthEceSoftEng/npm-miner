@@ -4,6 +4,9 @@ import PropTypes from 'prop-types';
 import TopTen from '../components/TopTen';
 import axios from 'axios';
 import NumberFormat from 'react-number-format';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faInfoCircle } from '@fortawesome/free-solid-svg-icons'
+import ReactTooltip from 'react-tooltip'
 
 class Main extends Component {
 
@@ -15,6 +18,7 @@ class Main extends Component {
       loc: 0,
       packages: 0,
       packages_per_day: 0,
+      trivial_packages: 0,
       top_stars: []
     };
 
@@ -39,6 +43,7 @@ class Main extends Component {
         loc: response.data.loc,
         packages: response.data.packages,
         packages_per_day: response.data.packages_per_day,
+        trivial_packages: response.data.trivial_packages,
         top_stars: response.data.top_stars
       })
     })
@@ -142,12 +147,25 @@ class Main extends Component {
                   }
                 </article>
               </div>
-              {/* <div className="tile is-parent">
+              <div className="tile is-parent">
                 <article className="tile is-child box">
-                  <p className="title">Four</p>
-                  <p className="subtitle">Subtitle</p>
+                  {!this.state.loading ? (
+                    <div>
+                      <p className="title"><NumberFormat value={this.state.trivial_packages} displayType={'text'} thousandSeparator={true} /> ({Number(100 * this.state.trivial_packages/this.state.packages).toFixed(2)}%)</p>
+                      <p className="subtitle">trivial packages <span data-tip data-for='trivialPackages' class="icon has-text-info"><FontAwesomeIcon icon={faInfoCircle} color="black"/></span>
+                        <ReactTooltip id='trivialPackages' place="bottom" type="dark" effect="solid" multiline="true">
+                          <span>A trivial package is considered as a package<br/> with less that 35 lines of code and <br/>less than 10 McCabe's cyclomatic complexity.</span>
+                        </ReactTooltip>
+                      </p>
+                    </div>
+                  ) : (
+                    <BeatLoader
+                      color={'black'} 
+                    />
+                  )
+                  }
                 </article>
-              </div> */}
+              </div>
             </div>
           </div>
         </section>

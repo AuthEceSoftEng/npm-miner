@@ -5,6 +5,7 @@ var Promise = require("bluebird");
 Promise.promisifyAll(shelljs);
 const axios = require('axios');
 const _ = require('lodash')
+const queries = require('./queries')
 
 router.get('/search', function(req, res) {
   const query = req.query.q;
@@ -69,6 +70,7 @@ router.get('/dashboard', function(req, res) {
   let loc_mined = 0
   let packages_mined = 0
   let packages_per_day = 0
+  let trivial_packages = 0
   req.app.locals.collection.aggregate([{
     $project: {
       numOfLinesExist: { 
@@ -83,6 +85,9 @@ router.get('/dashboard', function(req, res) {
     },
   }]).toArray().then(result => {
     loc_mined = _.chain(result).filter(r => !isNaN(r.numOfLinesExist)).sumBy(r => r.numOfLinesExist).value()
+    return req.app.locals.collection.aggregate(queries.trivialPackages).toArray()
+  }).then(result => {
+    trivial_packages = result[0].countSimple
     return req.app.locals.collection.countDocuments()
   }).then(result => {
     packages_mined = result
@@ -97,7 +102,7 @@ router.get('/dashboard', function(req, res) {
                 },
      }]).sort({score: -1}).limit(10).toArray()
   }).then(result => {
-    return res.json({ loc: loc_mined, packages: packages_mined, top_stars: result, packages_per_day: packages_per_day})
+    return res.json({ loc: loc_mined, packages: packages_mined, top_stars: result, packages_per_day: packages_per_day, trivial_packages})
   }).catch(err => {
     return res.sendStatus(500)
   })
