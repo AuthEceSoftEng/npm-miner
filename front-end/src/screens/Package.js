@@ -54,11 +54,15 @@ class Package extends Component {
                             <tbody>
                                 <tr>
                                     <td>GitHub Repo</td>
-                                    <td>{this.state.package.github_repository ? this.state.package.github_repository : 'No GitHub repo identified'}</td>
+                                    <td>{this.state.package.github && this.state.package.github.repository ? this.state.package.github.repository : 'No GitHub repo identified'}</td>
                                 </tr>
                                 <tr>
                                     <td>GitHub Stars</td>
-                                    <td>{this.state.package.stars ? this.state.package.stars : 'No GitHub repo identified'}</td>
+                                    <td>{this.state.package.github && this.state.package.github.stars ? this.state.package.github.stars : 'No GitHub repo identified'}</td>
+                                </tr>
+                                <tr>
+                                    <td>Downloads (Last 30 days when analyzed)</td>
+                                    <td>{this.state.package.npmsjs ? this.state.package.npmsjs.downloads : 'NA'}</td>
                                 </tr>
                                 <tr>
                                     <td>Number of Files</td>
@@ -72,7 +76,7 @@ class Package extends Component {
                                     <td>Number of Dependencies</td>
                                     <td>
                                       {
-                                        _.keys(this.state.package.latest_package_json.dependencies).length
+                                        _.keys(this.state.package.dependencies).length
                                       }
                                     </td>
                                 </tr>
@@ -80,25 +84,25 @@ class Package extends Component {
                                     <td>Number of devDependencies</td>
                                     <td>
                                       {
-                                      _.keys(this.state.package.latest_package_json.devDependencies).length
+                                      _.keys(this.state.package.devDependencies).length
                                       }
                                       </td>
                                 </tr>
                                 <tr>
                                     <td>npms.io Maintenance</td>
-                                    <td>{this.state.package.npmsio ? Number(100*this.state.package.npmsio.score.detail.maintenance).toFixed(2) : 'NA'}</td>
+                                    <td>{this.state.package.npmsio_analysis && this.state.package.npmsio_analysis.score ? Number(100*this.state.package.npmsio_analysis.score.detail.maintenance).toFixed(2) : 'NA'}</td>
                                 </tr>
                                 <tr>
                                     <td>npms.io Popularity</td>
-                                    <td>{this.state.package.npmsio ? Number(100*this.state.package.npmsio.score.detail.popularity).toFixed(2) : 'NA'}</td>
+                                    <td>{this.state.package.npmsio_analysis && this.state.package.npmsio_analysis.score ? Number(100*this.state.package.npmsio_analysis.score.detail.popularity).toFixed(2) : 'NA'}</td>
                                 </tr>
                                 <tr>
                                     <td>npms.io Quality</td>
-                                    <td>{this.state.package.npmsio ? Number(100*this.state.package.npmsio.score.detail.quality).toFixed(2) : 'NA'}</td>
+                                    <td>{this.state.package.npmsio_analysis && this.state.package.npmsio_analysis.score ? Number(100*this.state.package.npmsio_analysis.score.detail.quality).toFixed(2) : 'NA'}</td>
                                 </tr>
                                 <tr>
                                     <td>npms.io Overall</td>
-                                    <td>{this.state.package.npmsio ? Number(100*this.state.package.npmsio.score.final).toFixed(2) : 'NA'}</td>
+                                    <td>{this.state.package.npmsio_analysis && this.state.package.npmsio_analysis.score ? Number(100*this.state.package.npmsio_analysis.score.final).toFixed(2) : 'NA'}</td>
                                 </tr>
                             </tbody>
                           </table>
@@ -106,8 +110,8 @@ class Package extends Component {
                           <div>
                             <h2 className="subtitle is-6">Directory analysis</h2>
                             <ul>
-                              <li>Maximum directory depth: {this.state.package.maxDirDepth || 'NA'}</li>
-                              <li>Minimum directory depth: {this.state.package.minDirDepth || 'NA'}</li>
+                              <li>Maximum directory depth: {!isNaN(this.state.package.maxDirDepth) ? this.state.package.maxDirDepth : 'NA'}</li>
+                              <li>Minimum directory depth: {!isNaN(this.state.package.minDirDepth) ? this.state.package.minDirDepth : 'NA'}</li>
                             </ul>
                             <h2 className="subtitle is-6">eslint</h2>
                             {this.state.package.eslint ?
@@ -123,7 +127,6 @@ class Package extends Component {
                             <h2 className="subtitle is-6">escomplex</h2>
                             {this.state.package.escomplex ?
                             <ul>
-                            Number(100*this.state.package.npmsio.score.detail.maintenance).toFixed(2)
                               <li>Cyclomatic Complexity: {Number(this.state.package.escomplex.cyclomatic).toFixed(2) || 'NA'}</li>
                               <li>Maintainability Index: {Number(this.state.package.escomplex.maintainability).toFixed(2) || 'NA'}</li>
                               <li>Parameters: {Number(this.state.package.escomplex.params).toFixed(2) || 'NA'}</li>

@@ -1,0 +1,15 @@
+{
+  "name": "maintenance",
+  "version": "1.0.0",
+  "description": "",
+  "main": "migration-2019-11-12.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^8.2.0",
+    "mongodb": "^3.3.4"
+  }
+}

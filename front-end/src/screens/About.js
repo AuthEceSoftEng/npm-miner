@@ -62,6 +62,16 @@ class About extends Component {
                         The authors would like to thank <a href='https://grnet.gr/en/'>GRNET</a> for providing 
                         cloud resources to implement this project.
                     </p>
+                    <h2 className='title is-6'>Related websites</h2>
+                    <p className='mb-10'>
+                        Related websites are:
+                        <ul>
+                            <li><a href="https://npms.io/">https://npms.io/</a></li>
+                            <li><a href="https://libraries.io/">https://libraries.io/</a></li>
+                            <li><a href="http://www.modulecounts.com/">http://www.modulecounts.com/</a></li>
+                            <li><a href="http://anvaka.github.io/npmrank/online/">http://anvaka.github.io/npmrank/online/</a></li>
+                        </ul>
+                    </p>
                 </div>
             </div>
         </section>

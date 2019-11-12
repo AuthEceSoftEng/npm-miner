@@ -1,7 +1,6 @@
-const path = require('path')
+path = require('path')
 if(process.env.NODE_ENV === "development") {
-    const path_to_envs = path.resolve(path.join(__dirname, '..'), '.env')
-    require('dotenv').config({path: path_to_envs})
+  require('dotenv').config({path: path.resolve(process.cwd(), '.env')})
 }
 const cron = require('node-cron');
 const bunyan = require('bunyan');
@@ -24,7 +23,7 @@ let ch;
 const pm2 = require('./pm2mgt');
 
 cron.schedule(
-    '*/10 * * * *',
+    '*/1 * * * *',
     function() {
         logger.info('Restart workers');
         return pm2.respawn().then(() => {

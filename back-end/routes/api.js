@@ -33,12 +33,12 @@ router.get('/stats', function(req, res) {
             '$cond': {
               'if': {
                 '$isArray': {
-                  '$objectToArray': '$latest_package_json.dependencies'
+                  '$objectToArray': '$dependencies'
                 }
               }, 
               'then': {
                 '$size': {
-                  '$objectToArray': '$latest_package_json.dependencies'
+                  '$objectToArray': '$dependencies'
                 }
               }, 
               'else': 0
@@ -91,9 +91,9 @@ router.get('/dashboard', function(req, res) {
   }).then(result => {
     packages_per_day = result
     return req.app.locals.collection.aggregate([
-      {$group: {_id: '$github_repository',
-                'name': {$first: '$github_repository'},
-                'score': {$first: '$stars'},
+      {$group: {_id: '$github.repository',
+                'name': {$first: '$github.repository'},
+                'score': {$first: '$github.stars'},
                 },
      }]).sort({score: -1}).limit(10).toArray()
   }).then(result => {
