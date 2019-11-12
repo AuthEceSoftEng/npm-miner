@@ -23,7 +23,7 @@ let ch;
 const pm2 = require('./pm2mgt');
 
 cron.schedule(
-    '*/1 * * * *',
+    '*/10 * * * *',
     function() {
         logger.info('Restart workers');
         return pm2.respawn().then(() => {
