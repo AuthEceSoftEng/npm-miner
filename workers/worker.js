@@ -1,7 +1,6 @@
-const path = require('path')
+path = require('path')
 if(process.env.NODE_ENV === "development") {
-    const path_to_envs = path.resolve(path.join(__dirname, '..'), '.env')
-    require('dotenv').config({path: path_to_envs})
+  require('dotenv').config({path: path.resolve(process.cwd(), '.env')})
 }
 const amqp = require('amqplib');
 const bunyan = require('bunyan');
@@ -103,18 +102,22 @@ function work(job, channel, msg, db) {
             if(doc.name &&
                 doc.name === job.package_name &&
                 doc.repository &&
-                doc.repository.url &&
-                new RegExp(
-                    /[\/][\/]github[\.]com[\/][a-zA-Z0-9\-]+[\/][a-zA-Z0-9\-]+/g
-                ).test(doc.repository.url)) {
-                const github_repository = `https:${doc.repository.url.match(
-                    /[\/][\/]github[\.]com[\/][a-zA-Z0-9\-]+[\/][a-zA-Z0-9\-]+/g
-                )[0]}`;
-                package.github_repository = github_repository;
-                // @TODO check here if it exists in the DB
-                let split = package.github_repository.split('/');
-                let user = split[3];
-                let repo = split[4];
+                doc.repository.url) {
+                package.repository = doc.repository.url
+                const hasGithub = new RegExp(/[\/][\/]github[\.]com[\/][a-zA-Z0-9\-]+[\/][a-zA-Z0-9\-]+/g).test(doc.repository.url)
+                logger.info(`Has: ${hasGithub}`);
+                if (hasGithub) {
+                    package.github = {}
+                    const github_repository = `https:${doc.repository.url.match(
+                        /[\/][\/]github[\.]com[\/][a-zA-Z0-9\-]+[\/][a-zA-Z0-9\-]+/g
+                    )[0]}`;
+                    package.github.repository = github_repository;
+                    let split = package.github.repository.split('/');
+                    let user = split[3];
+                    let reponame = split[4];
+                    package.github.user = user
+                    package.github.reponame = reponame
+                }
                 const remote_tasks = [];
                 remote_tasks.push(
                     request({
@@ -123,30 +126,43 @@ function work(job, channel, msg, db) {
                     })
                 );
                 remote_tasks.push(
-                    octokit.repos.get({
-                        owner: user,
-                        repo: repo
+                    request({
+                        url: `https://api.npmjs.org/downloads/point/last-month/${package.name}`,
+                        json: true
                     })
-                );
+                )
+                if (hasGithub) {
+                    remote_tasks.push(
+                        octokit.repos.get({
+                            owner: package.github.user,
+                            repo: package.github.reponame
+                        })
+                    );
+                }
                 Promise.all(remote_tasks).then(res => {
-                    const npmsio = res[0];
-                    const github = res[1];
-                    logger.info(`[3] The score is  ${npmsio.score.final}`);
-                    package.npmsio = npmsio;
-                    logger.info(`[4] Stars ${user}/${repo}: ${github.data.stargazers_count}`);
-                    if (
-                        github.data.html_url.includes(user) &&
-                        github.data.html_url.includes(repo)
-                    ) {
-                        package.stars = github.data.stargazers_count;
-                        logger.info(`[5] Store package ${package.name} with a repo of ${github.data.stargazers_count} GitHub stars!`);
-                    } else {
-                        package.issue = 'github-redirect'
+                    const npmsio = { evaluation: res[0].evaluation, score: res[0].score }
+                    const npmjs = res[1]
+                    if (hasGithub) {
+                        const github = res[2];
+                        if (
+                            github.data.html_url.includes(package.github.user) &&
+                            github.data.html_url.includes(package.github.reponame)
+                        ) {
+                            package.github.stars = github.data.stargazers_count;
+                            logger.info(`[3] Store package ${package.name} with a repo of ${github.data.stargazers_count} GitHub stars!`);
+                            logger.info(`[3b] Stars ${package.github.user}/${package.github.reponame}: ${github.data.stargazers_count}`);
+                        } else {
+                            package.github.issue = 'github-redirect'
+                        }
                     }
+                    logger.info(`[4] The score is  ${npmsio.score.final}`);
+                    package.npmsio_analysis = npmsio;
+                    logger.info(`[6] Last 30 days downloads: ${npmjs.downloads}`);
+                    package.npmjs = npmjs;
                     rimraf.sync(dest);
                     mkdirp.sync(dest);
                     const url = package.tarball;
-                    logger.info(`[6] Downloading tarball from: ${url}`);
+                    logger.info(`[7] Downloading tarball from: ${url}`);
                     let filename = url.substr(url.lastIndexOf('/'));
                     const tarzball = path.join(dest, filename);
                     const targetDir = path.join(dest, filename.slice(0, -4));
@@ -188,7 +204,7 @@ function work(job, channel, msg, db) {
                   return glob(createGlobbyPattern(localPath, ignores), { nodir: true });
                 }).then(filepaths => {
                     paths = filepaths;
-                    logger.info(`[7] Files identified: ${paths.length}`);
+                    logger.info(`[8] Files identified: ${paths.length}`);
                     package.numOfFiles = paths.length;
                     if (path.length > 1000) {
                         return reject('More than 1000 files');
@@ -223,7 +239,7 @@ function work(job, channel, msg, db) {
                         return reject('More than 1000 files');
                     } else {
                         logger.info(`Number of lines: ${lines}`);
-                        logger.info('[8] eslint analysis');
+                        logger.info('[9] eslint analysis');
                         package.eslint = {};
                         // Wrapping it as a bluebird Promise to have the cancel() function
                         analysis = Promise.resolve(jssa.analyze_eslint(paths));
@@ -273,7 +289,7 @@ function work(job, channel, msg, db) {
                     package.eslint.message = 'eslint-not-completed';
                     return resolve('OK');
                 }).then(() => {
-                    logger.info('[9] escomplex analysis');
+                    logger.info('[10] escomplex analysis');
                     package.escomplex = {};
                     analysis = Promise.resolve(jssa.analyze_escomplex(paths));
                     return Promise.race([
@@ -305,7 +321,7 @@ function work(job, channel, msg, db) {
                     package.escomplex.message = 'escomplex-not-completed';
                     return resolve('OK');
                 }).then(() => {
-                    logger.info('[10] npm audit analysis');
+                    logger.info('[11] npm audit analysis');
                     package.npmaudit = {};
                     let pathToPackage = path.join(__dirname, localPath,'package')
                     logger.info(pathToPackage);
@@ -328,7 +344,7 @@ function work(job, channel, msg, db) {
                     package.npmaudit.message = 'npmaudit-not-completed';
                     return resolve('OK');
                 }).then(() => {
-                    logger.info('[11] jsinspect analysis');
+                    logger.info('[12] jsinspect analysis');
                     package.jsinspect = {};
                     analysis = Promise.resolve(jssa.analyze_jsinspect(paths));
                     return Promise.race([
@@ -387,18 +403,18 @@ function work(job, channel, msg, db) {
                     return col.findOneAndReplace({name: package.name}, package, { upsert: true });
                 })
             } else {
-                logger.info(`No github repo identified`);
-                package.error1 = 'no-github-repo-identified';
+                logger.info(`No repo identified`);
+                package.error1 = 'no-repo-identified';
                 channel.ack(msg);
                 const col = db.collection('packages');
-                logger.info('[14] Document upserted');
+                logger.info('[15] Document upserted');
                 return col.findOneAndReplace({name: package.name}, package, { upsert: true });
             }
         }).catch(err => {
             logger.error(`8: ${err}`);
             const col = db.collection('packages');
             package.error8 = err;
-            logger.info('[14] Document upserted');
+            logger.info('[16] Document upserted');
             return col.findOneAndReplace({name: job.package_name}, package, { upsert: true });
         });
     });

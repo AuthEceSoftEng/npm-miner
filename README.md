@@ -37,15 +37,16 @@ The application runs in three shells:
 
 In production:
 
-1. `docker exec npm-miner-mongo mongodump --uri="mongodb://mongodb:npm_miner_mongo_db@mongodb:27017/npmminer?authSource=admin" --collection=packages`
-2. `docker exec -it ac00db5fb263 bash` and tar the `dump` dir.
-3. ` docker cp ac00db5fb263:/dump.tar .`
-4. `docker exec -it ac00db5fb263 bash` and delete the tarfile
+1. `docker exec npm-miner-mongo mongodump --uri="mongodb://<username>:<password>@mongodb:27017/npmminer?authSource=admin" --collection=packages`
+2. `docker exec -it ac00db5fb263 bash` and tar the `dump` dir (`tar -cf dump.tar dump/`)
+3. `docker cp ac00db5fb263:/dump.tar .`
+4. `docker exec -it ac00db5fb263 bash` and delete the tarfile and the `dump` dir
 
 then `scp` in development
 
 In development:
 
 1. `docker cp dump.tar  npm-miner_mongo_1:/tmp/`
-2. `docker exec -it npm-miner_mongo_1 bash` and untar
-3. `docker exec npm-miner_mongo_1 mongorestore /tmp/dump --uri="mongodb://mongodb:npm_miner_mongo_db@localhost:27017/npmminer?authSource=admin"`
+2. `docker exec -it npm-miner_mongo_1 bash` and untar (`tar -xvf /tmp/dump.tar`)
+3. `docker exec npm-miner_mongo_1 mongorestore /dump --uri="mongodb://<username>:<password>@localhost:27017/npmminer?authSource=admin"`
+4. Delete the `dump` directory and the tar file
