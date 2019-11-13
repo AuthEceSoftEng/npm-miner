@@ -140,7 +140,7 @@ class Package extends Component {
                             </ul> : <p>No escomplex analysis</p>}
                             <p className="is-size-7 has-text-grey">Metrics from ES5 js files only</p>
                             <h2 className="subtitle is-6">npm audit</h2>
-                            {this.state.package.npmaudit ?
+                            {this.state.package.npmaudit && this.state.package.npmaudit.results ?
                             <p>Vulnerabilities: {this.state.package.npmaudit.results.actions.length}</p>
                             : <p>No npm audit analysis</p>}
                             <h2 className="subtitle is-6">jsinspect</h2>
