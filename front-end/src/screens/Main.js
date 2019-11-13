@@ -154,7 +154,7 @@ class Main extends Component {
                       <p className="title"><NumberFormat value={this.state.trivial_packages} displayType={'text'} thousandSeparator={true} /> ({Number(100 * this.state.trivial_packages/this.state.packages).toFixed(2)}%)</p>
                       <p className="subtitle">trivial packages <span data-tip data-for='trivialPackages' class="icon has-text-info"><FontAwesomeIcon icon={faInfoCircle} color="black"/></span>
                         <ReactTooltip id='trivialPackages' place="bottom" type="dark" effect="solid" multiline="true">
-                          <span>A trivial package is considered as a package<br/> with less that 35 lines of code and <br/>less than 10 McCabe's cyclomatic complexity.</span>
+                          <span>A trivial package is considered as a package<br/> with less that 35 lines of code and <br/>less than 10 McCabe's cyclomatic complexity (Abdalkareem et al., 2017).</span>
                         </ReactTooltip>
                       </p>
                     </div>

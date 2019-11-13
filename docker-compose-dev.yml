@@ -2,6 +2,19 @@ version: '3.3'
 
 services:
 
+  redis:
+    image: redis:5-buster
+    command: redis-server --requirepass ${REDIS_PASSWORD}
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
+    restart: always
+    hostname: redis
+    ports:
+      - 6379:6379
+
   rabbit:
     image: rabbitmq:3-management
     logging:

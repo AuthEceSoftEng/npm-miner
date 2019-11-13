@@ -30,8 +30,9 @@ services:
       - '4000:4000'
     environment:
       MONGODB_URL: "${MONGODB_URL}"
+      REDIS_ADDRESS: "${REDIS_ADDRESS}"
       PORT: "${PORT}"
-      WAIT_HOSTS: npm-miner-mongo:27017
+      WAIT_HOSTS: npm-miner-mongo:27017, npm-miner-redis:6379
       WAIT_BEFORE_HOSTS: 60
       WAIT_SLEEP_INTERVAL: 30
       WAIT_HOSTS_TIMEOUT: 600
@@ -41,6 +42,7 @@ services:
           - nic_backend
     depends_on:
       - "mongo"
+      - "redis"
     logging:
       driver: "json-file"
       options:
@@ -95,6 +97,24 @@ services:
       options:
         max-size: "10m"
         max-file: "5"
+
+  redis:
+    image: redis:5-buster
+    command: redis-server --requirepass ${REDIS_PASSWORD}
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
+    container_name: npm-miner-redis
+    restart: always
+    hostname: redis
+    ports:
+      - 6379:6379
+    networks:
+      backnet:
+        aliases:
+          - nic_redis
 
   rabbit:
     image: rabbitmq:3-management

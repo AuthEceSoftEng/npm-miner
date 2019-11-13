@@ -53,6 +53,10 @@ class Package extends Component {
                             </thead>
                             <tbody>
                                 <tr>
+                                    <td>Version Mined</td>
+                                    <td>{this.state.package.version ? this.state.package.version : 'NA'}</td>
+                                </tr>
+                                <tr>
                                     <td>GitHub Repo</td>
                                     <td>{this.state.package.github && this.state.package.github.repository ? this.state.package.github.repository : 'No GitHub repo identified'}</td>
                                 </tr>

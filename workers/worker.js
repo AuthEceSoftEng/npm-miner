@@ -91,6 +91,7 @@ function work(job, channel, msg, db) {
             package.id = doc._id;
             package.name = doc.name;
             package.processing_date = Date.now();
+            package.version = doc.versions[doc['dist-tags'].latest].version;
             package.tarball = doc.versions[doc['dist-tags'].latest].dist.tarball;
             package.dependencies = doc.versions[doc['dist-tags'].latest].dependencies;
             package.devDependencies = doc.versions[doc['dist-tags'].latest].devDependencies;
