@@ -6,6 +6,7 @@
 path = require('path')
 if(process.env.NODE_ENV === "development") {
   require('dotenv').config({path: path.resolve(process.cwd(), '.env')})
+  console.log(process.env.REDIS_ADDRESS)
 }
 var app = require('../app');
 var debug = require('debug')('back-end:server');
@@ -14,6 +15,7 @@ var http = require('http');
 const MongoClient = require('mongodb').MongoClient;
 const url = process.env.MONGODB_URL;
 console.log(url)
+console.log(process.env.REDIS_ADDRESS)
 
 /**
  * Get port from environment and store in Express.

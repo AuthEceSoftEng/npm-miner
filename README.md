@@ -24,14 +24,38 @@ Front-facing there is Nginx that handles the web traffic and serves the React.js
 
 On the mining side, the Crawler through a cron job, every ten minutes requests a random page of 100 packages from the CouchDB of the npm-registry. Immediatelly it sends 100 messages with the package.json files of the packages to the RabbitMQ to be consumed by the workers. The workers request metadata from GitHub and the analysis of npms.io and then download the tarball from the link provided in the latest package.json file and perform the static code analysis, storing the results in the MongoDB.
 
-## Local
+## Deploy
+
+### Local for development
 
 Make sure: `back-end/.env`, `front-end/.env` are set
 
 The application runs in three shells:
-1. Run: `docker-compose --file docker-compose-dev.yml up`
+1. Run: `docker-compose --file docker-compose-dev.yml up --force-recreate`
 2. `cd back-end && npm run dev`
-3. `cd back-end && npm start`
+3. `cd front-end && npm start`
+
+Check `localhost:3000`
+
+### Test Locally the Docker compose deployment
+
+Make sure: `.env` is set in the root folder of the project and run
+
+```
+docker-compose -f docker-compose-stage.yml up --build --force-recreate
+```
+
+Check `localhost:8080`
+
+### Production Deployment
+
+In the production server, pull the latest code and run:
+
+```
+docker-compose up --build -d
+```
+
+Check `npm-miner.com`
 
 ## Mongo dump and restore
 

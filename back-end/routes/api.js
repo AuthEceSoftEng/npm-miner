@@ -6,6 +6,10 @@ Promise.promisifyAll(shelljs);
 const axios = require('axios');
 const _ = require('lodash')
 const queries = require('./queries')
+const middlewares = require('./middlewares')
+const redis = require("redis"), client = redis.createClient(process.env.REDIS_ADDRESS);
+const {promisify} = require('util');
+const setAsync = promisify(client.set).bind(client);
 
 router.get('/search', function(req, res) {
   const query = req.query.q;
@@ -25,12 +29,12 @@ router.get('/search', function(req, res) {
   });
 });
 
-router.get('/stats', function(req, res) {
+router.get('/stats', middlewares.checkStatsCache, function(req, res) {
   req.app.locals.collection.aggregate(
     [
       {
         '$project': {
-          'devDeps': {
+          'deps': {
             '$cond': {
               'if': {
                 '$isArray': {
@@ -48,7 +52,7 @@ router.get('/stats', function(req, res) {
         }
       }, {
         '$bucket': {
-          'groupBy': '$devDeps', 
+          'groupBy': '$deps', 
           'boundaries': [
             0, 1, 2, 3, 4, 5, 6, 7
           ], 
@@ -62,15 +66,12 @@ router.get('/stats', function(req, res) {
       }
     ]
   ).toArray().then(result => {
-    return res.json({dependencies: result})
-  });
+    return Promise.all([result, setAsync('cache:stats', JSON.stringify({dependencies: result}), 'EX', 24 * 60 * 60)])
+  }).then(values => res.status(200).json({dependencies: values[0]})).catch(error => console.error(error));
 })
 
-router.get('/dashboard', function(req, res) {
-  let loc_mined = 0
-  let packages_mined = 0
-  let packages_per_day = 0
-  let trivial_packages = 0
+router.get('/dashboard', middlewares.checkDashboardCache, function(req, res) {
+  let response = { loc: 0, packages: 0, top_stars: 0, packages_per_day: 0, trivial_packages: 0}
   req.app.locals.collection.aggregate([{
     $project: {
       numOfLinesExist: { 
@@ -84,17 +85,17 @@ router.get('/dashboard', function(req, res) {
       }
     },
   }]).toArray().then(result => {
-    loc_mined = _.chain(result).filter(r => !isNaN(r.numOfLinesExist)).sumBy(r => r.numOfLinesExist).value()
+    response.loc = _.chain(result).filter(r => !isNaN(r.numOfLinesExist)).sumBy(r => r.numOfLinesExist).value()
     return req.app.locals.collection.aggregate(queries.trivialPackages).toArray()
   }).then(result => {
-    trivial_packages = result[0].countSimple
+    response.trivial_packages = result[0].countSimple
     return req.app.locals.collection.countDocuments()
   }).then(result => {
-    packages_mined = result
+    response.packages = result
     const yesterday = Date.now() - 1000*60*60*24
     return req.app.locals.collection.countDocuments( { processing_date: { $gt:  yesterday} } )
   }).then(result => {
-    packages_per_day = result
+    response.packages_per_day = result
     return req.app.locals.collection.aggregate([
       {$group: {_id: '$github.repository',
                 'name': {$first: '$github.repository'},
@@ -102,7 +103,10 @@ router.get('/dashboard', function(req, res) {
                 },
      }]).sort({score: -1}).limit(10).toArray()
   }).then(result => {
-    return res.json({ loc: loc_mined, packages: packages_mined, top_stars: result, packages_per_day: packages_per_day, trivial_packages})
+    response.top_stars = result
+    return setAsync('cache:dashboard', JSON.stringify(response), 'EX', 1 * 60 * 60)
+  }).then(() => {
+    return res.json(response)
   }).catch(err => {
     return res.sendStatus(500)
   })
@@ -110,10 +114,13 @@ router.get('/dashboard', function(req, res) {
 
 
 
-router.get('/packages/:package*', function(req, res) {
+router.get('/packages/:package*', middlewares.checkPackageCache, function(req, res) {
+// router.get('/packages/:package*', function(req, res) {
   const collection = req.app.locals.collection;
   const packageName = req.params.package;
-  collection.findOne({ name: packageName }).then(response => res.status(200).json(response)).catch(error => console.error(error));
+  collection.findOne({ name: packageName }).then(response => {
+    return Promise.all([response, setAsync(packageName, JSON.stringify(response), 'EX', 48 * 60 * 60)])
+  }).then(values => res.status(200).json(values[0])).catch(error => console.error(error));
 });
 
 module.exports = router;
