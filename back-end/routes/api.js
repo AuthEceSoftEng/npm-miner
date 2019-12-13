@@ -65,9 +65,47 @@ router.get('/stats', middlewares.checkStatsCache, function(req, res) {
         }
       }
     ]
-  ).toArray().then(result => {
-    return Promise.all([result, setAsync('cache:stats', JSON.stringify({dependencies: result}), 'EX', 24 * 60 * 60)])
-  }).then(values => res.status(200).json({dependencies: values[0]})).catch(error => console.error(error));
+  ).toArray().then(step1 => {
+    return Promise.all([step1,
+      req.app.locals.collection.aggregate(
+        [
+          {
+            '$project': {
+              'devDeps': {
+                '$cond': {
+                  'if': {
+                    '$isArray': {
+                      '$objectToArray': '$devDependencies'
+                    }
+                  }, 
+                  'then': {
+                    '$size': {
+                      '$objectToArray': '$devDependencies'
+                    }
+                  }, 
+                  'else': 0
+                }
+              }
+            }
+          }, {
+            '$bucket': {
+              'groupBy': '$devDeps', 
+              'boundaries': [
+                0, 1, 2, 3, 4, 5, 6, 7
+              ], 
+              'default': '>6', 
+              'output': {
+                'count': {
+                  '$sum': 1
+                }
+              }
+            }
+          }
+        ]
+      ).toArray()])
+    }).then(step2 => {
+    return Promise.all([step2[0], step2[1], setAsync('cache:stats', JSON.stringify({dependencies: step2[0], devDependencies: step2[1]}), 'EX', 24 * 60 * 60)])
+  }).then(values => res.status(200).json({dependencies: values[0], devDependencies: values[1]})).catch(error => console.error(error));
 })
 
 router.get('/dashboard', middlewares.checkDashboardCache, function(req, res) {

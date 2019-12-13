@@ -12,7 +12,9 @@ class Stats extends Component {
     this.state = {
       loading: true,
       dependencies: [],
-      sum: 0
+      devDependencies: [],
+      sum: 0,
+      sumDev: 0
     }
   }
 
@@ -21,7 +23,9 @@ class Stats extends Component {
       this.setState({
         loading: false,
         dependencies: response.data.dependencies,
-        sum: _.sumBy(response.data.dependencies, 'count')
+        sum: _.sumBy(response.data.dependencies, 'count'),
+        devDependencies: response.data.devDependencies,
+        sumDev: _.sumBy(response.data.devDependencies, 'count')
       })
     })
   }
@@ -41,17 +45,31 @@ class Stats extends Component {
                 [DOI: <a href='https://doi.org/10.1145/2901739.2901743'>10.1145/2901739.2901743</a>]
               </p>
               {!this.state.loading ? 
-                <div>
-                  <h2 className='subtitle is-4'>Dependencies</h2>
+                <div className="columns">
+                  <div className="column">
+                    <h2 className='subtitle is-4'>Dependencies</h2>
+                    <ul>
+                      {this.state.dependencies.map(d => {
+                                return (
+                                <li key={d._id}>
+                                  <span><strong><NumberFormat value={d.count} displayType={'text'} thousandSeparator={true} /> ({Number(d.count * 100.0/this.state.sum).toFixed(2)}%)</strong> packages have <strong>{d._id}</strong> {d._id === 1 ? <span>dependency</span>:<span>dependencies</span>}</span>
+                                </li>
+                                );
+                            })}
+                        </ul>
+                  </div>
+                  <div className="column">
+                  <h2 className='subtitle is-4'>devDependencies</h2>
                   <ul>
-                    {this.state.dependencies.map(d => {
+                    {this.state.devDependencies.map(d => {
                               return (
                               <li key={d._id}>
-                                <span><strong><NumberFormat value={d.count} displayType={'text'} thousandSeparator={true} /> ({Number(d.count * 100.0/this.state.sum).toFixed(2)}%)</strong> packages have <strong>{d._id}</strong> {d._id === 1 ? <span>dependency</span>:<span>dependencies</span>}</span>
+                                <span><strong><NumberFormat value={d.count} displayType={'text'} thousandSeparator={true} /> ({Number(d.count * 100.0/this.state.sumDev).toFixed(2)}%)</strong> packages have <strong>{d._id}</strong> {d._id === 1 ? <span>devDependency</span>:<span>devDependencies</span>}</span>
                               </li>
                               );
                           })}
                       </ul>
+                  </div>
                 </div> 
                 : 
                 <div className='has-text-centered'>

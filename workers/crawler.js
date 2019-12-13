@@ -13,7 +13,7 @@ const opts = {
   };
 const npm_registry = require('nano')(opts);
 
-const logger = bunyan.createLogger({ name: 'tracker' });
+const logger = bunyan.createLogger({ name: 'tracker', level: process.env.LOG_LEVEL || 'info' });
 const limit = 200;
 const mq = process.env.RABBIT_URL;
 const q = 'analyses_queue';
