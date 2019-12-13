@@ -6,7 +6,7 @@ const amqp = require('amqplib');
 const bunyan = require('bunyan');
 const assert = require('assert');
 const uuidv1 = require('uuid/v1');
-const logger = bunyan.createLogger({ name: 'tracker' });
+const logger = bunyan.createLogger({ name: 'tracker', level: process.env.LOG_LEVEL || 'info' });
 const mq = process.env.RABBIT_URL;
 const q = 'analyses_queue';
 let ch;
