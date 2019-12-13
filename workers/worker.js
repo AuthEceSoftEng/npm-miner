@@ -6,7 +6,7 @@ const amqp = require('amqplib');
 const bunyan = require('bunyan');
 const assert = require('assert');
 const uuidv1 = require('uuid/v1');
-const logger = bunyan.createLogger({ name: 'tracker' });
+const logger = bunyan.createLogger({ name: 'tracker', level: process.env.LOG_LEVEL || 'info' });
 const mq = process.env.RABBIT_URL;
 const q = 'analyses_queue';
 let ch;
@@ -105,12 +105,12 @@ function work(job, channel, msg, db) {
                 doc.repository &&
                 doc.repository.url) {
                 package.repository = doc.repository.url
-                const hasGithub = new RegExp(/[\/][\/]github[\.]com[\/][a-zA-Z0-9\-]+[\/][a-zA-Z0-9\-]+/g).test(doc.repository.url)
+                const hasGithub = new RegExp(/github[\.]com[\/][a-zA-Z0-9\-]+[\/][a-zA-Z0-9\-]+/g).test(doc.repository.url)
                 logger.info(`Has: ${hasGithub}`);
                 if (hasGithub) {
                     package.github = {}
-                    const github_repository = `https:${doc.repository.url.match(
-                        /[\/][\/]github[\.]com[\/][a-zA-Z0-9\-]+[\/][a-zA-Z0-9\-]+/g
+                    const github_repository = `https://${doc.repository.url.match(
+                        /github[\.]com[\/][a-zA-Z0-9\-]+[\/][a-zA-Z0-9\-]+/g
                     )[0]}`;
                     package.github.repository = github_repository;
                     let split = package.github.repository.split('/');

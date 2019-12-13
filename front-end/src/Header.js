@@ -22,7 +22,7 @@ class Header extends Component {
             <div className="navbar-end">
                 <Link className="navbar-item" to="/stats">Stats</Link>
                 <Link className="navbar-item" to="/about">About</Link>
-                <a className="navbar-item" href="https://github.com/AuthEceSoftEng/npm-miner">GitHub*</a>
+                <a className="navbar-item" href="https://github.com/kyrcha/npm-miner">GitHub*</a>
             </div>
             
         </div>
