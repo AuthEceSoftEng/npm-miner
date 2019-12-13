@@ -2,6 +2,8 @@
 
 Static code analysis of the npm registry.
 
+**npm-miner** is maintained on the fork: [https://github.com/kyrcha/npm-miner](https://github.com/kyrcha/npm-miner).
+
 The `docker-compose.yml` contains the services needed by the npm-miner to work. These are:
 - nginx for a web server
 - rabbitmq for a worker queue

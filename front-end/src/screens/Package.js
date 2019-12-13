@@ -122,11 +122,14 @@ class Package extends Component {
                             <ul>
                               <li>Errors: {this.state.package.eslint.errorCount || 'NA'}</li>
                               <li>Warnings: {this.state.package.eslint.warningCount || 'NA'}</li>
-                              <li>Details:</li>
-                              <ul>{Object.entries(this.state.package.eslint.typesAndCounts).map(([key, val]) => ({ key, val })).map(issue => {
-                                return <li key={issue.key}>{issue.key}: {issue.val}</li>
-                                })}
-                              </ul>
+                              {this.state.package.eslint.typesAndCounts !== null ?
+                              <li>Details:
+                                <ul>
+                                  {Object.entries(this.state.package.eslint.typesAndCounts).map(([key, val]) => ({ key, val })).map(issue => {
+                                    return <li key={issue.key}>{issue.key}: {issue.val}</li>
+                                  })}
+                                </ul>
+                              </li>: ''}
                             </ul> : <p>No eslint analysis</p>}
                             <h2 className="subtitle is-6">escomplex</h2>
                             {this.state.package.escomplex ?
